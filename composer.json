@@ -1,0 +1,39 @@
+{
+  "name": "yilu-tech/yimq-laravel-sdk",
+  "description": "YiMQ laravel client sdk.",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "leekeal",
+      "email": "lishu@yilu.co"
+    }
+  ],
+  "minimum-stability": "dev",
+  "require": {
+    "php": "^7.1.3",
+    "guzzlehttp/guzzle": "~6.0"
+  },
+  "require-dev": {
+    "laravel/framework": "5.7.*",
+    "phpunit/phpunit": "^7.0",
+    "barryvdh/laravel-ide-helper": "^2.6@dev"
+  },
+  "autoload": {
+    "psr-4": {
+      "YiluTech\\YiMQ\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "YiluTech\\YiMQ\\YiMqServiceProvider"
+      ]
+    }
+  }
+}
