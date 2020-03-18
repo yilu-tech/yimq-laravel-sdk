@@ -26,10 +26,10 @@ $app = new Illuminate\Foundation\Application(
 |
 */
 
-//$App->singleton(
-//    Illuminate\Contracts\Http\Kernel::class,
-//    App\Http\Kernel::class
-//);
+$app->singleton(
+    Illuminate\Contracts\Http\Kernel::class,
+    Tests\App\Http\Kernel::class
+);
 //
 $app->singleton(
     Illuminate\Contracts\Console\Kernel::class,

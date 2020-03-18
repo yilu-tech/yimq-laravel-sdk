@@ -6,7 +6,10 @@ namespace YiluTech\YiMQ\Constants;
 
 class SubtaskStatus
 {
-    CONST PREPARED = 10;
-    CONST DONE= 20;
-    const CANCELED = -20;
+    CONST PREPARING = 10;
+    CONST PREPARED = 20;
+    CONST DOING = 30;
+    CONST DONE = 40;
+    CONST CANCELLING = -30;
+    CONST CANCELED = -40;
 }

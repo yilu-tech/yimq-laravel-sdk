@@ -17,6 +17,7 @@ class CreateYimqSubtasksTable extends Migration
             $table->unsignedInteger('id')->primary();
             $table->unsignedInteger('message_id');
             $table->unsignedTinyInteger('type')->nullable(false);
+            $table->json('data')->nullable();
             $table->tinyInteger('status')->nullable(false);
             $table->timestamps();
         });

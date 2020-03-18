@@ -13,6 +13,10 @@ class Subtask extends Model
         'id',
         'message_id',
         'type',
+        'data',
         'status'
+    ];
+    protected $casts = [
+        'data' => 'json'
     ];
 }
