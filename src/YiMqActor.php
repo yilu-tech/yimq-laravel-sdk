@@ -5,6 +5,9 @@ namespace YiluTech\YiMQ;
 
 
 
+use YiluTech\YiMQ\Constants\MessageStatus;
+use YiluTech\YiMQ\Models\Message as  MessageModel;
+
 class YiMqActor
 {
     private $processorsMap;
@@ -33,14 +36,26 @@ class YiMqActor
         return $processor->cancel($context);
     }
 
-    public function messageCheck(){
-
+    public function messageCheck($context){
+        $messageModel = MessageModel::lockForUpdate()->find($context['id']);
+        if(!isset($messageModel)){
+            abort(400,'Message not exists.');
+        }
+        if($messageModel->status == MessageStatus::DONE){
+            return ['status'=>'DONE'];
+        }
+        if($messageModel->status == MessageStatus::CANCELED){
+            return ['status'=>'CANCELED'];
+        }
+        //如果lockForUpdate能拿到message且处于PENDING状态，说明本地回滚后设置 message状态失败，check的时候补偿状态
+        if($messageModel->status == MessageStatus::PENDING){
+            $messageModel->status = MessageStatus::CANCELED;
+            $messageModel->save();
+            return ['status'=>'CANCELED'];
+        }
     }
 
-    public function subtaskCheck($context){
-        $processor = $this->getProcessor($context['processor']);
-        $processor->subtaskCheck($context);
-    }
+
 
     private function getProcessor($processor){
         if(!isset($this->processorsMap[$processor])){

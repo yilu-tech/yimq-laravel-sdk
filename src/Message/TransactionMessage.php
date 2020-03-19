@@ -131,6 +131,7 @@ class TransactionMessage extends Message
 
     public function rollback(){
         \DB::rollBack();
+        //TODO::添加一个mock锚点，测试rollback后修改message状态失败
         $this->model->status = MessageStatus::CANCELED;
         $this->model->save();
         $this->remoteRollback();

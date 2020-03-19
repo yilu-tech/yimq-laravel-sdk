@@ -20,9 +20,7 @@ class YiMqController
             case 'CANCEL':
                 return $yiMqActor->cancel($context);
             case 'MESSAGE_CHECK':
-                return $yiMqActor->messageCheck();
-            case 'SUBTASK_CHECK':
-                return $yiMqActor->subtaskCheck();
+                return $yiMqActor->messageCheck($context);
             default:
                 throw new \Exception("Action <$action> not exists.");
 
