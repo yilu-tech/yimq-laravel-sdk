@@ -91,13 +91,13 @@ class YiMqTransactionMessageMocker extends YiMqMocker
         ];
     }
     public function prepareRun(){
-        $result['ecSubtasks'] = [];
+        $result['ec_subtasks'] = [];
         $first = SutaskModel::query()->orderByDesc('id')->first();
         $index = $first ?  ++ $first->id : 1;
         foreach ($this->target->ecSubtasks as $subtask) {
             $ecSubtask = (array)$subtask;
             $ecSubtask['id'] = $index++;
-            array_push($result['ecSubtasks'],$ecSubtask);
+            array_push($result['ec_subtasks'],$ecSubtask);
         }
 
         return $result;

@@ -20,6 +20,7 @@ class YiMqActor
     }
 
     public function try($context){
+        \Log::debug('try',$context);
         $processor = $this->getProcessor($context['processor']);
         $processor->run($context);
         return ['status'=>'success'];
@@ -27,6 +28,7 @@ class YiMqActor
     }
 
     public function confirm($context){
+        \Log::debug('confirm',$context);
         $processor = $this->getProcessor($context['processor']);
         return $processor->confirm($context);
     }
@@ -58,9 +60,10 @@ class YiMqActor
 
 
     private function getProcessor($processor){
-        if(!isset($this->processorsMap[$processor])){
+        [$actorName,$processorName] = explode("@",$processor);
+        if(!isset($this->processorsMap[$processorName])){
             throw new \Exception("Processor <$processor> not exists");
         }
-        return resolve($this->processorsMap[$processor]);
+        return resolve($this->processorsMap[$processorName]);
     }
 }

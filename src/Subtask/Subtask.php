@@ -12,17 +12,17 @@ abstract class Subtask
 {
     public $id;
     protected $client;
-    public $processer;
+    public $processor;
     protected $message;
     protected $data;
     protected $mockManager;
     public $model;
-    public function __construct(YiMqClient $client,TransactionMessage $message, $processer)
+    public function __construct(YiMqClient $client,TransactionMessage $message, $processor)
     {
         $this->client = $client;
         $this->mockManager = $client->getMockManager();
         $this->message = $message;
-        $this->processer = $processer;
+        $this->processor = $processor;
 
 
     }

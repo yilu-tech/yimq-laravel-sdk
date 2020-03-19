@@ -20,7 +20,7 @@ class SubtaskProcessorTest extends TestCase
         $data['action'] = 'TRY';
         $data['context'] = [
             'type' => 'TCC',
-            'processor' => 'user.create',
+            'processor' => 'user@user.create',
             'id' => $id,
             'message_id' => '1',
             'data' => [
@@ -39,7 +39,7 @@ class SubtaskProcessorTest extends TestCase
         $data['action'] = 'CONFIRM';
         $data['context'] = [
             'id' => $id,
-            'processor' => 'user.create'
+            'processor' => 'user@user.create'
         ];
         //第1次confirm
         $response = $this->post('/yimq',$data);
@@ -65,7 +65,7 @@ class SubtaskProcessorTest extends TestCase
         $data['action'] = 'TRY';
         $data['context'] = [
             'type' => 'TCC',
-            'processor' => 'user.create',
+            'processor' => 'user@user.create',
             'id' => $id,
             'message_id' => '1',
             'data' => [
@@ -79,7 +79,7 @@ class SubtaskProcessorTest extends TestCase
         $data['action'] = 'CANCEL';
         $data['context'] = [
             'id' => $id,
-            'processor' => 'user.create'
+            'processor' => 'user@user.create'
         ];
         $response = $this->post('/yimq',$data);
         $response->assertStatus(200);
@@ -94,7 +94,7 @@ class SubtaskProcessorTest extends TestCase
         $data['action'] = 'TRY';
         $data['context'] = [
             'type' => 'TCC',
-            'processor' => 'user.create',
+            'processor' => 'user@user.create',
             'id' => $id,
             'message_id' => '1',
             'data' => [
@@ -115,7 +115,7 @@ class SubtaskProcessorTest extends TestCase
         $data['action'] = 'CANCEL';
         $data['context'] = [
             'id' => $id,
-            'processor' => 'user.create'
+            'processor' => 'user@user.create'
         ];
         //第1次Cancel
         $response = $this->post('/yimq',$data);
@@ -144,8 +144,8 @@ class SubtaskProcessorTest extends TestCase
         $data['action'] = 'CONFIRM';
         $data['context'] = [
             'type' => 'EC',
-            'processor' => 'user.update',
-            'id' => $id,
+            'processor' => 'user@user.update',
+            'subtask_id' => $id,
             'message_id' => '1',
             'data' => [
                 'id'=>$userModel->id,
@@ -171,8 +171,8 @@ class SubtaskProcessorTest extends TestCase
         $data['action'] = 'CONFIRM';
         $data['context'] = [
             'type' => 'EC',
-            'processor' => 'user.update',
-            'id' => $id,
+            'processor' => 'user@user.update',
+            'subtask_id' => $id,
             'message_id' => '1',
             'data' => [
                 'id'=>$userModels[0]->id,
@@ -187,8 +187,8 @@ class SubtaskProcessorTest extends TestCase
 
         $data['context'] = [
             'type' => 'EC',
-            'processor' => 'user.update',
-            'id' => $id,
+            'processor' => 'user@user.update',
+            'subtask_id' => $id,
             'message_id' => '1',
             'data' => [
                 'id'=>$userModels[0]->id,

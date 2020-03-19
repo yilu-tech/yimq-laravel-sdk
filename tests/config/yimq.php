@@ -2,7 +2,7 @@
 
 return [
 
-    'actor_name' => 'YIMQ_ACTOR_NAME',
+    'actor_name' => env('YIMQ_ACTOR_NAME'),
     'services' => [
         'default' =>[
             'uri' => env('YIMQ_DEFALUT_SERVICE_URI'),

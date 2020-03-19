@@ -72,7 +72,7 @@ class TransactionMessage extends Message
     public function prepare(){
         $context = [
             'message_id' => $this->id,
-            'ecSubtasks' => []
+            'ec_subtasks' => []
         ];
         //如果没有ecSubtask就不发起远程调用
         if(count($this->ecSubtasks) == 0){
@@ -81,10 +81,10 @@ class TransactionMessage extends Message
         }
         foreach ($this->ecSubtasks as $subtask){
             $ecSubtask = [
-                'processer' => $subtask->processer,
+                'processor' => $subtask->processor,
                 'data' => $subtask->getData()
             ];
-            array_push($context['ecSubtasks'],$ecSubtask);
+            array_push($context['ec_subtasks'],$ecSubtask);
         }
         $mockConditions['action'] = TransactionMessageAction::PREPARE;
         if($this->mockManager->hasMocker($this,$mockConditions)){//TODO 增加一个test环境生效的判断
@@ -98,7 +98,7 @@ class TransactionMessage extends Message
     }
     private function preparedSaveToDb($result){
         foreach ($this->ecSubtasks as $key => $ecSubtask ){
-            $ecSubtask->id = $result['ecSubtasks'][$key]['id'];
+            $ecSubtask->id = $result['ec_subtasks'][$key]['id'];
             $ecSubtask->save();
         }
     }

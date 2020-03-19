@@ -18,7 +18,7 @@ class TccSubtask extends Subtask
         $context = [
             'message_id' => $this->message->id,
             'type' => 'TCC',
-            'processer' => $this->processer,
+            'processor' => $this->processor,
             'data' => $this->data
         ];
         if($this->mockManager->hasMocker($this)){//TODO 增加一个test环境生效的判断

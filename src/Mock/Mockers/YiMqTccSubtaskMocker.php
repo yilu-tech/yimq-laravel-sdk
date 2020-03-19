@@ -11,11 +11,11 @@ class YiMqTccSubtaskMocker extends YiMqMocker
 {
     public $statusCode;
     public $data;
-    public $processer;
-    public function __construct(YiMqClient $client,$processer)
+    public $processor;
+    public function __construct(YiMqClient $client,$processor)
     {
         parent::__construct($client);
-        $this->processer = $processer;
+        $this->processor = $processor;
     }
 
     public function reply($statusCode,$data){
@@ -29,7 +29,7 @@ class YiMqTccSubtaskMocker extends YiMqMocker
 
     public function checkConditions($object,$conditions=[])
     {
-        if($object->processer == $this->processer){
+        if($object->processor == $this->processor){
             return true;
         }
         return false;

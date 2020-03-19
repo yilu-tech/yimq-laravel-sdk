@@ -16,8 +16,8 @@ class YiMqMockerBuilder
         $this->client = $client;
     }
 
-    public function tcc($processer):YiMqTccSubtaskMocker{
-        return new YiMqTccSubtaskMocker($this->client,$processer);
+    public function tcc($processor):YiMqTccSubtaskMocker{
+        return new YiMqTccSubtaskMocker($this->client,$processor);
     }
     public function topic($topic):YiMqTransactionMessageMocker{
         $mocker =  new YiMqTransactionMessageMocker($this->client);

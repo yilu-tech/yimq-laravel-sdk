@@ -13,7 +13,7 @@ abstract class EcProcessor extends Processor
     private $type = SubtaskType::EC;
     public function confirm($context)
     {
-        $this->id = $context['id'];
+        $this->id = $context['subtask_id'];
         $this->message_id = $context['message_id'];
         $this->data = $context['data'];
         $subtaskModel =  SubtaskModel::find($this->id);

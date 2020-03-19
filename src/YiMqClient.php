@@ -49,12 +49,12 @@ class YiMqClient
         return new TransactionMessage($this,$topic);
     }
 
-    public function tcc(String $processer): TccSubtask
+    public function tcc(String $processor): TccSubtask
     {
         if(!$this->hasTransactionMessage()){
             throw new \Exception('Not begin a yimq transaction');
         }
-        return new TccSubtask($this,$this->getTransactionMessage(),$processer);
+        return new TccSubtask($this,$this->getTransactionMessage(),$processor);
     }
 
     public function prepare():TransactionMessage
@@ -80,12 +80,12 @@ class YiMqClient
     }
 
 
-    public function ec(String $processer): EcSubtask
+    public function ec(String $processor): EcSubtask
     {
         if(!$this->hasTransactionMessage()){
             throw new \Exception('Not begin a yimq transaction');
         }
-        return new EcSubtask($this,$this->getTransactionMessage(),$processer);
+        return new EcSubtask($this,$this->getTransactionMessage(),$processor);
     }
 
 
