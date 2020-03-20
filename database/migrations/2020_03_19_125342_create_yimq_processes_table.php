@@ -17,7 +17,9 @@ class CreateYimqProcessesTable extends Migration
             $table->unsignedInteger('id')->primary();
             $table->unsignedInteger('message_id');
             $table->unsignedTinyInteger('type')->nullable(false);
+            $table->char('processor');
             $table->json('data')->nullable();
+            $table->json('try_result')->nullable();
             $table->tinyInteger('status')->nullable(false);
             $table->timestamps();
         });

@@ -13,10 +13,13 @@ class ProcessModel extends Model
         'id',
         'message_id',
         'type',
+        'processor',
         'data',
+        'try_result',
         'status'
     ];
     protected $casts = [
-        'data' => 'json'
+        'data' => 'json',
+        'try_result' => 'json'
     ];
 }

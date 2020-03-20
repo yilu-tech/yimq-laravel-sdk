@@ -17,6 +17,7 @@ use YiluTech\YiMQ\Mock\YiMqMockerBuilder;
 use YiluTech\YiMQ\Mock\YiMqMockManager;
 use YiluTech\YiMQ\Subtask\EcSubtask;
 use YiluTech\YiMQ\Subtask\TccSubtask;
+use YiluTech\YiMQ\Subtask\XaSubtask;
 
 class YiMqClient
 {
@@ -55,6 +56,14 @@ class YiMqClient
             throw new \Exception('Not begin a yimq transaction');
         }
         return new TccSubtask($this,$this->getTransactionMessage(),$processor);
+    }
+
+    public function xa(String $processor): TccSubtask
+    {
+        if(!$this->hasTransactionMessage()){
+            throw new \Exception('Not begin a yimq transaction');
+        }
+        return new XaSubtask($this,$this->getTransactionMessage(),$processor);
     }
 
 //    public function prepare():TransactionMessage
@@ -127,7 +136,7 @@ class YiMqClient
                 'json' => $context
             ]);
         } catch (RequestException $e) {
-//            dump($e->getMessage());
+//            dump($e->getResponse()->getBody()->getContents());
             if ($e instanceof ConnectException) {
                 $url = $e->getHandlerContext()['url'];
                 $msg = "MicroApi can not connect: $url";

@@ -10,6 +10,8 @@ use YiluTech\YiMQ\YiMqMessageBuilder;
 
 abstract class Subtask
 {
+    public $serverType;
+    public $type;
     public $id;
     protected $client;
     public $processor;
@@ -17,6 +19,7 @@ abstract class Subtask
     protected $data;
     protected $mockManager;
     public $model;
+
     public function __construct(YiMqClient $client,TransactionMessage $message, $processor)
     {
         $this->client = $client;

@@ -6,6 +6,7 @@ namespace YiluTech\YiMQ\Mock;
 
 use YiluTech\YiMQ\Mock\Mockers\YiMqTccSubtaskMocker;
 use YiluTech\YiMQ\Mock\Mockers\YiMqTransactionMessageMocker;
+use YiluTech\YiMQ\Mock\Mockers\YiMqXaSubtaskMocker;
 
 
 class YiMqMockerBuilder
@@ -18,6 +19,9 @@ class YiMqMockerBuilder
 
     public function tcc($processor):YiMqTccSubtaskMocker{
         return new YiMqTccSubtaskMocker($this->client,$processor);
+    }
+    public function xa($processor):YiMqTccSubtaskMocker{
+        return new YiMqXaSubtaskMocker($this->client,$processor);
     }
     public function topic($topic):YiMqTransactionMessageMocker{
         $mocker =  new YiMqTransactionMessageMocker($this->client);

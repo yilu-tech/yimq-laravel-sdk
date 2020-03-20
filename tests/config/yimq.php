@@ -19,7 +19,9 @@ return [
      */
     'processors'=>[
         'user.create' => \Tests\Services\UserCreate::class,
-        'user.update' => \Tests\Services\UserUpdate::class
+        'user.tcc_create' => \Tests\Services\UserTccCreate::class,
+        'user.update' => \Tests\Services\UserUpdate::class,
+
     ],
     /**
      * 消息事件监听器

@@ -10,12 +10,13 @@ use YiluTech\YiMQ\Models\ProcessModel;
 
 abstract class EcProcessor extends Processor
 {
-    private $type = SubtaskType::EC;
-    public function confirm($context)
+
+    public $type = SubtaskType::EC;
+    public function runConfirm($context)
     {
-        $this->id = $context['subtask_id'];
-        $this->message_id = $context['message_id'];
-        $this->data = $context['data'];
+        $this->checkSubtaskType('EC',$context['type']);
+        $this->setContextToThis($context);
+
         $subtaskModel =  ProcessModel::find($this->id);
         //如果任务已经存在且已经完成
         if(isset($subtaskModel) && $subtaskModel->status == SubtaskStatus::DONE){
@@ -23,15 +24,15 @@ abstract class EcProcessor extends Processor
         }
 
         if(!isset($subtaskModel)){
-            $this->recordSubtask();
+            $this->createProcess(SubtaskStatus::DOING);
         }
 
         try{
             \DB::beginTransaction();
             $this->setAndlockSubtaskModel();
             $this->do();
-            $this->subtaskModel->status = SubtaskStatus::DONE;
-            $this->subtaskModel->save();
+            $this->processModel->status = SubtaskStatus::DONE;
+            $this->processModel->save();
             \DB::commit();
             return ['status'=>"succeed"];
         }catch (\Exception $e){
@@ -39,17 +40,6 @@ abstract class EcProcessor extends Processor
             throw $e;
         }
 
-    }
-
-    private function recordSubtask(){
-        $subtaskModel = new ProcessModel();
-
-        $subtaskModel->id = $this->id;
-        $subtaskModel->message_id = $this->message_id;
-        $subtaskModel->type = $this->type;
-        $subtaskModel->data = $this->data;
-        $subtaskModel->status = SubtaskStatus::DOING;
-        $subtaskModel->save();
     }
 
 

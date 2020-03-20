@@ -9,6 +9,8 @@ use YiluTech\YiMQ\Models\Subtask as SubtaskModel;
 
 class EcSubtask extends Subtask
 {
+    public $serverType = "EC";
+    public $type = SubtaskType::EC;
 
     public function run()
     {
@@ -21,7 +23,7 @@ class EcSubtask extends Subtask
         $this->model->id = $this->id;
         $this->model->message_id = $this->message->id;
         $this->model->status = SubtaskStatus::PREPARED;
-        $this->model->type = SubtaskType::EC;
+        $this->model->type = $this->type;
         $this->model->save();
     }
 }

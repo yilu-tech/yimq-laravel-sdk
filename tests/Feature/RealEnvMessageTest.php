@@ -24,6 +24,8 @@ class RealEnvMessageTest extends TestCase
         $ecSubtask = \YiMQ::ec('user@user.update')->data($ecData)->run();
         \YiMQ::commit();
         $this->assertDatabaseHas($this->messageTable,['id'=>$message->id,'status'=>MessageStatus::DONE]);
+        sleep(1);
+        $this->assertDatabaseHas($this->userModelTable,['username'=>$ecData['username'] ]);
     }
 
     public function testMessageAddEcAfterRollback(){
@@ -44,13 +46,13 @@ class RealEnvMessageTest extends TestCase
         $this->assertDatabaseMissing($this->subtaskTable,['id'=>$ecSubtask->id]);
     }
 
-    public function testAddTccSubtask()
+    public function testAddXaSubtask()
     {
         $tccData['username'] = "name-".$this->getUserId();
         $message = \YiMQ::topic('user.create')->delay(10*1000)->begin();
 
 
-        $tccSubtask = \YiMQ::tcc('user@user.create')->data($tccData)->run();
+        $tccSubtask = \YiMQ::xa('user@user.create')->data($tccData)->run();
         $this->assertDatabaseHas($this->subtaskTable,['id'=>$tccSubtask->id]);
         //通过行锁确定是否在processor中产生数据
         try {
@@ -66,11 +68,11 @@ class RealEnvMessageTest extends TestCase
         $this->assertDatabaseHas($this->userModelTable,['id'=>$tccSubtask->prepareResult['id']]);
     }
 
-    public function testAddTccSubtaskLocalCommitFailedTimeoutCheck()
+    public function testAddXaSubtaskLocalCommitFailedTimeoutCheck()
     {
         $tccData['username'] = "name-".$this->getUserId();
         $message = \YiMQ::topic('user.create')->delay(1*1000)->data(['_remoteCommitFailed'=>'true'])->begin();
-        $tccSubtask = \YiMQ::tcc('user@user.create')->data($tccData)->run();
+        $tccSubtask = \YiMQ::xa('user@user.create')->data($tccData)->run();
         $this->assertDatabaseHas($this->subtaskTable,['id'=>$tccSubtask->id]);
         \YiMQ::commit();
         //暂停等待message超时确认message状态后去confirm
@@ -79,12 +81,12 @@ class RealEnvMessageTest extends TestCase
     }
 
 
-    public function testAddTccSubtaskRollback()
+    public function testAddXaSubtaskRollback()
     {
         $message = \YiMQ::topic('user.create')->delay(10*1000)->begin();
 
         $tccData['username'] = "name-".$this->getMessageId();
-        $tccSubtask = \YiMQ::tcc('user@user.create')->data($tccData)->run();
+        $tccSubtask = \YiMQ::xa('user@user.create')->data($tccData)->run();
         $this->assertDatabaseHas($this->subtaskTable,['id'=>$tccSubtask->id]);
 
         //通过行锁确定是否在processor中产生数据
@@ -99,12 +101,12 @@ class RealEnvMessageTest extends TestCase
         //通过插入数据确定username的杭锁已经释放
         UserModel::create(['username'=>$tccData['username']]);
     }
-    public function testAddTccSubtaskRemoteRollbackFaildTimeoutCheck()
+    public function testAddXaSubtaskRemoteRollbackFaildTimeoutCheck()
     {
         $message = \YiMQ::topic('user.create')->delay(2*1000)->data(['_remoteCancelFailed'=>'true'])->begin();
 
         $tccData['username'] = "name-".$this->getMessageId();
-        $tccSubtask = \YiMQ::tcc('user@user.create')->data($tccData)->run();
+        $tccSubtask = \YiMQ::xa('user@user.create')->data($tccData)->run();
         $this->assertDatabaseHas($this->subtaskTable,['id'=>$tccSubtask->id]);
 
 
@@ -118,7 +120,7 @@ class RealEnvMessageTest extends TestCase
      * 再通过tcc2创建和提前创建用户同名的用户触发try失败
      * 判断tcc1创建的用户是否不存在判断是否回滚
      */
-    public function testAddTccSubtaskTryFailedAfterRollback()
+    public function testAddXaSubtaskTryFailedAfterRollback()
     {
         \DB::getPdo()->exec("set innodb_lock_wait_timeout=1");
 
@@ -130,10 +132,10 @@ class RealEnvMessageTest extends TestCase
 
 
         $message = \YiMQ::topic('user.create')->begin();
-        $tccSubtask1 = \YiMQ::tcc('user@user.create')->data($tccData1)->run();
+        $tccSubtask1 = \YiMQ::xa('user@user.create')->data($tccData1)->run();
 
         try{
-            $tccSubtask2 = \YiMQ::tcc('user@user.create')->data($tccData2)->run();
+            $tccSubtask2 = \YiMQ::xa('user@user.create')->data($tccData2)->run();
         }catch (\Exception $e){
             \YiMQ::rollback();
             $this->assertDatabaseMissing($this->userModelTable,['id'=>$tccSubtask1->prepareResult['id']]);

@@ -162,6 +162,28 @@ class TransactionMessageTest extends TestCase
         $this->assertEquals($response->json('status'),"DONE");
 
     }
+
+    public function testAddXaSubtask()
+    {
+        \YiMQ::mock()->topic('user.create')->reply(200);
+        \YiMQ::mock()->xa('user@user.create')->reply(200,['username'=>'jack']);
+        \YiMQ::mock()->prepare()->reply(200);
+        \YiMQ::mock()->commit()->reply(200);
+
+        $message = \YiMQ::topic('user.create')->begin();
+        $tccSubtask = \YiMQ::xa('user@user.create')->data([])->run();
+        $this->assertDatabaseHas($this->subtaskTable,['id'=>$tccSubtask->id]);
+        \YiMQ::commit();
+
+        $data['action'] = 'MESSAGE_CHECK';
+        $data['context'] = [
+            'message_id' => $message->id,
+        ];
+        $response = $this->json('POST','/yimq',$data);
+        $response->assertStatus(200);
+        $this->assertEquals($response->json('status'),"DONE");
+
+    }
     public function testAddEcSubtaskAndPrepare()
     {
         \YiMQ::mock()->topic('content.update')->reply(200);

@@ -6,7 +6,9 @@ namespace YiluTech\YiMQ;
 
 
 use YiluTech\YiMQ\Constants\MessageStatus;
+use YiluTech\YiMQ\Exceptions\YiMqSystemException;
 use YiluTech\YiMQ\Models\Message as  MessageModel;
+use YiluTech\YiMQ\Models\ProcessModel;
 
 class YiMqActor
 {
@@ -22,19 +24,19 @@ class YiMqActor
     public function try($context){
         \Log::debug('try',$context);
         $processor = $this->getProcessor($context['processor']);
-        return $processor->run($context);
+        return $processor->runTry($context);
 
     }
 
     public function confirm($context){
         \Log::debug('confirm',$context);
         $processor = $this->getProcessor($context['processor']);
-        return $processor->confirm($context);
+        return $processor->runConfirm($context);
     }
 
     public function cancel($context){
         $processor = $this->getProcessor($context['processor']);
-        return $processor->cancel($context);
+        return $processor->runCancel($context);
     }
 
     public function messageCheck($context){
@@ -58,11 +60,10 @@ class YiMqActor
     }
 
 
-
     private function getProcessor($processor){
         [$actorName,$processorName] = explode("@",$processor);
         if(!isset($this->processorsMap[$processorName])){
-            throw new \Exception("Processor <$processor> not exists");
+            throw new YiMqSystemException("Processor <$processor> not exists");
         }
         return resolve($this->processorsMap[$processorName]);
     }

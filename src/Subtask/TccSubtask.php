@@ -10,6 +10,8 @@ use YiluTech\YiMQ\Models\Subtask as SubtaskModel;
 
 class TccSubtask extends Subtask
 {
+    public $serverType = 'TCC';
+    public $type = SubtaskType::TCC;
     public $prepareResult;
 
     public function run()
@@ -17,7 +19,7 @@ class TccSubtask extends Subtask
 
         $context = [
             'message_id' => $this->message->id,
-            'type' => 'TCC',
+            'type' => $this->serverType,
             'processor' => $this->processor,
             'data' => $this->data
         ];
@@ -34,7 +36,7 @@ class TccSubtask extends Subtask
         $this->model->id = $this->id;
         $this->model->message_id = $this->message->id;
         $this->model->status = SubtaskStatus::PREPARED;
-        $this->model->type = SubtaskType::TCC;
+        $this->model->type = $this->type;
         $this->model->save();
 
         $this->message->addTccSubtask($this);

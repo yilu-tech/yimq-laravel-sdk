@@ -12,6 +12,7 @@ class UserModel extends Model
     protected $fillable = [
         'id',
         'username',
+        'status'
     ];
 
 }
