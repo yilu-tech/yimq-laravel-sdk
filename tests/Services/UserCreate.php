@@ -19,5 +19,6 @@ class UserCreate extends XaProcessor
         if(isset($this->data['failed'])){
             abort(400,'mock failed');
         }
+        return $userModel->toArray();
     }
 }

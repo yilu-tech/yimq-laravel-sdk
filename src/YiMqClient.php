@@ -40,7 +40,7 @@ class YiMqClient
         $this->uri= $config['uri'];
         $this->guzzleClient = new Client([
            'base_uri' => $this->uri,
-            'timeout' => 2
+            'timeout' => 3
         ]);
     }
 
@@ -127,6 +127,7 @@ class YiMqClient
                 'json' => $context
             ]);
         } catch (RequestException $e) {
+//            dump($e->getMessage());
             if ($e instanceof ConnectException) {
                 $url = $e->getHandlerContext()['url'];
                 $msg = "MicroApi can not connect: $url";

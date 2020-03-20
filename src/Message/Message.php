@@ -15,11 +15,21 @@ abstract class Message
     public  $model;
     public $id;
     public $mockManager;
+    public $delay;
+    public $data;
     public function __construct(YiMqClient $client,$topic)
     {
         $this->client = $client;
         $this->mockManager = $client->getMockManager();
         $this->topic = $topic;
+    }
+    public function delay($millisecond){
+        $this->delay = $millisecond;
+        return $this;
+    }
+    public function data($data){
+        $this->data = $data;
+        return $this;
     }
 
     abstract function create();

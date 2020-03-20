@@ -16,7 +16,7 @@ class SubtaskProcessorTest extends TestCase
 
     public function testTccTryCommit()
     {
-        $id = $this->getSubtaskId();
+        $id = $this->getProcessId();
         $data['action'] = 'TRY';
         $data['context'] = [
             'type' => 'TCC',
@@ -34,18 +34,18 @@ class SubtaskProcessorTest extends TestCase
 
         \DB::reconnect();//需要重新连接数据里否则xa的prepare状态下无法进行其他数据库操作
         //已经是PREPARED状态，但还未commit 查出状态
-        $this->assertDatabaseHas($this->subtaskTable,['id'=>$id,'status'=>SubtaskStatus::PREPARING]);
+        $this->assertDatabaseHas($this->processModelTable,['id'=>$id,'status'=>SubtaskStatus::PREPARING]);
 
         $data['action'] = 'CONFIRM';
         $data['context'] = [
-            'id' => $id,
+            'subtask_id' => $id,
             'processor' => 'user@user.create'
         ];
         //第1次confirm
         $response = $this->post('/yimq',$data);
         $response->assertStatus(200);
         $this->assertEquals($response->json()['status'],'succeed');
-        $this->assertDatabaseHas($this->subtaskTable,['id'=>$id,'status'=>SubtaskStatus::DONE]);
+        $this->assertDatabaseHas($this->processModelTable,['id'=>$id,'status'=>SubtaskStatus::DONE]);
 
         //第2次confirm
         $response = $this->post('/yimq',$data);
@@ -61,7 +61,7 @@ class SubtaskProcessorTest extends TestCase
 
     public function testTccTryFailedAutoRollback()
     {
-        $id = $this->getSubtaskId();
+        $id = $this->getProcessId();
         $data['action'] = 'TRY';
         $data['context'] = [
             'type' => 'TCC',
@@ -78,19 +78,19 @@ class SubtaskProcessorTest extends TestCase
 
         $data['action'] = 'CANCEL';
         $data['context'] = [
-            'id' => $id,
+            'subtask_id' => $id,
             'processor' => 'user@user.create'
         ];
         $response = $this->post('/yimq',$data);
         $response->assertStatus(200);
         $this->assertEquals($response->json()['status'],'retry_succeed');
-        $this->assertDatabaseHas($this->subtaskTable,['id'=>$id,'status'=>SubtaskStatus::CANCELED]);
+        $this->assertDatabaseHas($this->processModelTable,['id'=>$id,'status'=>SubtaskStatus::CANCELED]);
     }
 
 
     public function testTccTryAfterRollback()
     {
-        $id = $this->getSubtaskId();
+        $id = $this->getProcessId();
         $data['action'] = 'TRY';
         $data['context'] = [
             'type' => 'TCC',
@@ -108,20 +108,20 @@ class SubtaskProcessorTest extends TestCase
 
         \DB::reconnect();//需要重新连接数据里否则xa的prepare状态下无法进行其他数据库操作
         //已经是PREPARED状态，但还未commit 查出状态
-        $this->assertDatabaseHas($this->subtaskTable,['id'=>$id,'status'=>SubtaskStatus::PREPARING]);
+        $this->assertDatabaseHas($this->processModelTable,['id'=>$id,'status'=>SubtaskStatus::PREPARING]);
 
 
 
         $data['action'] = 'CANCEL';
         $data['context'] = [
-            'id' => $id,
+            'subtask_id' => $id,
             'processor' => 'user@user.create'
         ];
         //第1次Cancel
         $response = $this->post('/yimq',$data);
         $response->assertStatus(200);
         $this->assertEquals($response->json()['status'],'succeed');
-        $this->assertDatabaseHas($this->subtaskTable,['id'=>$id,'status'=>SubtaskStatus::CANCELED]);
+        $this->assertDatabaseHas($this->processModelTable,['id'=>$id,'status'=>SubtaskStatus::CANCELED]);
 
         //第2次Cancel
         $response = $this->post('/yimq',$data);
@@ -138,9 +138,9 @@ class SubtaskProcessorTest extends TestCase
 
     public function testEcCommitSuccess()
     {
-        $id = $this->getSubtaskId();
+        $id = $this->getProcessId();
 
-        $userModel = UserModel::query()->orderByDesc('id')->first();
+        $userModel = $this->createMockUser();
         $data['action'] = 'CONFIRM';
         $data['context'] = [
             'type' => 'EC',
@@ -156,7 +156,7 @@ class SubtaskProcessorTest extends TestCase
         $response = $this->json('POST','/yimq',$data);
         $response->assertStatus(200);
         $this->assertDatabaseHas($this->userModelTable,['id'=>$userModel->id,'username'=>$data['context']['data']['username']]);
-        $this->assertDatabaseHas($this->subtaskTable,['id'=>$id,'status'=>SubtaskStatus::DONE]);
+        $this->assertDatabaseHas($this->processModelTable,['id'=>$id,'status'=>SubtaskStatus::DONE]);
 
         $response = $this->json('POST','/yimq',$data);
         $response->assertStatus(200);
@@ -165,9 +165,10 @@ class SubtaskProcessorTest extends TestCase
 
     public function testEcCommitFailed()
     {
-        $id = $this->getSubtaskId();
+        $id = $this->getProcessId();
 
-        $userModels = UserModel::query()->orderBy('id')->get();
+        $userModel1 = $this->createMockUser();
+        $userModel2 = $this->createMockUser();
         $data['action'] = 'CONFIRM';
         $data['context'] = [
             'type' => 'EC',
@@ -175,15 +176,15 @@ class SubtaskProcessorTest extends TestCase
             'subtask_id' => $id,
             'message_id' => '1',
             'data' => [
-                'id'=>$userModels[0]->id,
-                'username'=>$userModels[1]->username
+                'id'=>$userModel1->id,
+                'username'=>$userModel2->username
             ]
         ];
 
         $response = $this->json('POST','/yimq',$data);
         $response->assertStatus(500);
-        $this->assertDatabaseMissing($this->userModelTable,['id'=>$userModels[0]->id,'username'=>$data['context']['data']['username']]);
-        $this->assertDatabaseHas($this->subtaskTable,['id'=>$id,'status'=>SubtaskStatus::DOING]);
+        $this->assertDatabaseMissing($this->userModelTable,['id'=>$userModel1->id,'username'=>$data['context']['data']['username']]);
+        $this->assertDatabaseHas($this->processModelTable,['id'=>$id,'status'=>SubtaskStatus::DOING]);
 
         $data['context'] = [
             'type' => 'EC',
@@ -191,7 +192,7 @@ class SubtaskProcessorTest extends TestCase
             'subtask_id' => $id,
             'message_id' => '1',
             'data' => [
-                'id'=>$userModels[0]->id,
+                'id'=>$userModel1->id,
                 'username'=>"test$id"
             ]
         ];

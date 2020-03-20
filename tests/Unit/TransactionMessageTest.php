@@ -23,7 +23,7 @@ class TransactionMessageTest extends TestCase
 
         $data['action'] = 'MESSAGE_CHECK';
         $data['context'] = [
-            'id' => $message->id,
+            'message_id' => $message->id,
         ];
         $response = $this->json('POST','/yimq',$data);
         $response->assertStatus(200);
@@ -47,7 +47,7 @@ class TransactionMessageTest extends TestCase
 
         $data['action'] = 'MESSAGE_CHECK';
         $data['context'] = [
-            'id' => $message->id,
+            'message_id' => $message->id,
         ];
         $response = $this->json('POST','/yimq',$data);
         $response->assertStatus(200);
@@ -57,21 +57,22 @@ class TransactionMessageTest extends TestCase
     public function testMessagePrepareFailedRollback(){
         \YiMQ::mock()->topic('user.create')->reply(200);
         \YiMQ::mock()->prepare()->reply(400);
+        \YiMQ::mock()->rollback()->reply(200);
 
         $message = \YiMQ::topic('user.create')->begin();
         $this->assertDatabaseHas($this->messageTable,['id'=>$message->id]);
-
+        $ecSubtask1 = \YiMQ::ec('content@content.change')->data(['title'=>'new title1'])->run();
         try{
             \YiMQ::prepare();
         }catch(\Exception $exeption){
             $this->assertDatabaseHas($this->messageTable,['id'=>$message->id,'status'=>MessageStatus::PENDING]);
             \YiMQ::rollback();
-            $this->assertDatabaseHas($this->messageTable,['id'=>$message->id,'status'=>MessageStatus::CANCELED]);
         }
+        $this->assertDatabaseHas($this->messageTable,['id'=>$message->id,'status'=>MessageStatus::CANCELED]);
 
         $data['action'] = 'MESSAGE_CHECK';
         $data['context'] = [
-            'id' => $message->id,
+            'message_id' => $message->id,
         ];
         $response = $this->json('POST','/yimq',$data);
         $response->assertStatus(200);
@@ -92,7 +93,7 @@ class TransactionMessageTest extends TestCase
 
         $data['action'] = 'MESSAGE_CHECK';
         $data['context'] = [
-            'id' => $message->id,
+            'message_id' => $message->id,
         ];
         $response = $this->json('POST','/yimq',$data);
         $response->assertStatus(200);
@@ -118,7 +119,7 @@ class TransactionMessageTest extends TestCase
 
         $data['action'] = 'MESSAGE_CHECK';
         $data['context'] = [
-            'id' => $message->id,
+            'message_id' => $message->id,
         ];
         $response = $this->json('POST','/yimq',$data);
         $response->assertStatus(200);
@@ -129,15 +130,19 @@ class TransactionMessageTest extends TestCase
     {
         $message = \YiMQ::mock()->topic('user.create')->reply(200);
         $message = \YiMQ::topic('user.create')->begin();
+        \YiMQ::mock()->rollback()->reply(200);
+        $errorMessage = null;
         try{
             $message = \YiMQ::topic('user.create')->begin();
         }catch (\Exception $exception){
-            $this->assertEquals('MicroApi transaction message already exists.',$exception->getMessage());
+            $errorMessage = $exception->getMessage();
+            \YiMQ::rollback();
         }
+        $this->assertEquals('MicroApi transaction message already exists.',$errorMessage);
 
         $data['action'] = 'MESSAGE_CHECK';
         $data['context'] = [
-            'id' => $message->id,
+            'message_id' => $message->id,
         ];
         $response = $this->json('POST','/yimq',$data);
         $response->assertStatus(200);
@@ -159,7 +164,7 @@ class TransactionMessageTest extends TestCase
 
         $data['action'] = 'MESSAGE_CHECK';
         $data['context'] = [
-            'id' => $message->id,
+            'message_id' => $message->id,
         ];
         $response = $this->json('POST','/yimq',$data);
         $response->assertStatus(200);
@@ -182,7 +187,7 @@ class TransactionMessageTest extends TestCase
 
         $data['action'] = 'MESSAGE_CHECK';
         $data['context'] = [
-            'id' => $message->id,
+            'message_id' => $message->id,
         ];
         $response = $this->json('POST','/yimq',$data);
         $response->assertStatus(200);

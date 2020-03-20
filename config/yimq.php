@@ -17,7 +17,7 @@ return [
     /**
      * 消息参与处理器
      */
-    'processer'=>[
+    'processor'=>[
 
     ],
     /**

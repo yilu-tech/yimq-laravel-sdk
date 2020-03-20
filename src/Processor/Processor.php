@@ -5,8 +5,7 @@ namespace YiluTech\YiMQ\Processor;
 
 
 use YiluTech\YiMQ\Constants\SubtaskStatus;
-use YiluTech\YiMQ\Models\Subtask as SubtaskModel;
-
+use YiluTech\YiMQ\Models\ProcessModel;
 abstract class Processor
 {
     protected $id;
@@ -20,14 +19,14 @@ abstract class Processor
 
     }
     protected function setAndlockSubtaskModel(){
-        $this->subtaskModel =  SubtaskModel::lockForUpdate()->find($this->id);
+        $this->subtaskModel =  ProcessModel::lockForUpdate()->find($this->id);
         if(!isset($this->subtaskModel)){
             abort(400,"Subtask $this->id not exists");
         }
     }
 
     protected function setSubtaskStatusCanceled(){
-        SubtaskModel::where('id',$this->id)->update(['status'=>SubtaskStatus::CANCELED]);
+        ProcessModel::where('id',$this->id)->update(['status'=>SubtaskStatus::CANCELED]);
     }
 
     private function beforeTransaction(){

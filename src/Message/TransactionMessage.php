@@ -42,7 +42,8 @@ class TransactionMessage extends Message
     private function createRemoteTransactionRecrod(){
         $context = [
             'topic' => $this->getTopic(),
-            'type' => MessageServerType::TRANSACTION
+            'type' => MessageServerType::TRANSACTION,
+            'delay' => $this->delay
         ];
         $mockConditions['action'] = TransactionMessageAction::BEGIN;
         if($this->mockManager->hasMocker($this,$mockConditions)){//TODO 增加一个test环境生效的判断
@@ -109,8 +110,10 @@ class TransactionMessage extends Message
             throw new \Exception('Transaction not prepare.');
         }
         $this->localCommmit();
-        $this->remoteCommit();
 
+        if(!$this->data['_remoteCommitFailed']){
+            $this->remoteCommit();
+        }
         return $this;
     }
 
@@ -134,7 +137,10 @@ class TransactionMessage extends Message
         //TODO::添加一个mock锚点，测试rollback后修改message状态失败
         $this->model->status = MessageStatus::CANCELED;
         $this->model->save();
-        $this->remoteRollback();
+        if(!$this->data['_remoteCancelFailed']){
+            $this->remoteRollback();
+        }
+
         return $this;
     }
     private function remoteRollback(){

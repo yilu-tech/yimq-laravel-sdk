@@ -22,8 +22,7 @@ class YiMqActor
     public function try($context){
         \Log::debug('try',$context);
         $processor = $this->getProcessor($context['processor']);
-        $processor->run($context);
-        return ['status'=>'success'];
+        return $processor->run($context);
 
     }
 
@@ -39,7 +38,8 @@ class YiMqActor
     }
 
     public function messageCheck($context){
-        $messageModel = MessageModel::lockForUpdate()->find($context['id']);
+        \Log::debug($context);
+        $messageModel = MessageModel::lockForUpdate()->find($context['message_id']);
         if(!isset($messageModel)){
             abort(400,'Message not exists.');
         }

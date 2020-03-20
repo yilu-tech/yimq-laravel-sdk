@@ -6,7 +6,7 @@ namespace YiluTech\YiMQ\Processor;
 
 use YiluTech\YiMQ\Constants\SubtaskStatus;
 use YiluTech\YiMQ\Constants\SubtaskType;
-use YiluTech\YiMQ\Models\Subtask as SubtaskModel;
+use YiluTech\YiMQ\Models\ProcessModel;
 
 abstract class EcProcessor extends Processor
 {
@@ -16,7 +16,7 @@ abstract class EcProcessor extends Processor
         $this->id = $context['subtask_id'];
         $this->message_id = $context['message_id'];
         $this->data = $context['data'];
-        $subtaskModel =  SubtaskModel::find($this->id);
+        $subtaskModel =  ProcessModel::find($this->id);
         //如果任务已经存在且已经完成
         if(isset($subtaskModel) && $subtaskModel->status == SubtaskStatus::DONE){
             return ['status'=>"retry_succeed"];
@@ -42,7 +42,7 @@ abstract class EcProcessor extends Processor
     }
 
     private function recordSubtask(){
-        $subtaskModel = new SubtaskModel();
+        $subtaskModel = new ProcessModel();
 
         $subtaskModel->id = $this->id;
         $subtaskModel->message_id = $this->message_id;

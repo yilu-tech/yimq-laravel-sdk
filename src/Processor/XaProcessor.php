@@ -6,7 +6,7 @@ namespace YiluTech\YiMQ\Processor;
 
 use YiluTech\YiMQ\Constants\SubtaskStatus;
 use YiluTech\YiMQ\Constants\SubtaskType;
-use YiluTech\YiMQ\Models\Subtask as SubtaskModel;
+use YiluTech\YiMQ\Models\ProcessModel;
 
 abstract class XaProcessor extends Processor
 {
@@ -31,12 +31,13 @@ abstract class XaProcessor extends Processor
 
         //2. 开启xa事务
         try{
-            $this->prepare();
+            $prepareResult = $this->prepare();
             $this->subtaskModel->status = SubtaskStatus::DONE;
             $this->subtaskModel->save();
             //3. prepare xa事务
             $this->pdo->exec("XA END '$this->id'");
             $this->pdo->exec("XA PREPARE '$this->id'");
+            return $prepareResult;
 
         }catch (\Exception $e){
             $this->pdo->exec("XA END '$this->id'");
@@ -48,7 +49,7 @@ abstract class XaProcessor extends Processor
     }
 
     private function recordSubtask(){
-        $subtaskModel = new SubtaskModel();
+        $subtaskModel = new ProcessModel();
         $subtaskModel->id = $this->id;
         $subtaskModel->message_id = $this->message_id;
         $subtaskModel->type = $this->type;
@@ -59,7 +60,7 @@ abstract class XaProcessor extends Processor
     }
 
     public function confirm($context){
-        $this->id = $context['id'];
+        $this->id = $context['subtask_id'];
         try{
             $this->pdo->exec("XA COMMIT '$this->id'");
             return ['status'=>"succeed"];
@@ -79,7 +80,7 @@ abstract class XaProcessor extends Processor
     }
 
     public function CANCEL($context){
-        $this->id = $context['id'];
+        $this->id = $context['subtask_id'];
         try{
             $this->pdo->exec("XA ROLLBACK '$this->id'");
             $this->setSubtaskStatusCanceled();
