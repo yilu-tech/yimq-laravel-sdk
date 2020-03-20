@@ -10,6 +10,7 @@ class YiMqServiceProvider extends ServiceProvider
             __DIR__ . '/../config/yimq.php' => config_path('yimq.php')
         ]);
         $this->loadRoutesFrom(__DIR__.'/Http/routes.php');
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
     }
 
 
