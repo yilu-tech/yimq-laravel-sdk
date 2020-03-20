@@ -70,7 +70,7 @@ class TransactionMessage extends Message
         array_push($this->ecSubtasks,$subtask);
     }
 
-    public function prepare(){
+    private function prepare(){
         $context = [
             'message_id' => $this->id,
             'ec_subtasks' => []
@@ -106,9 +106,7 @@ class TransactionMessage extends Message
 
     public function commit(){
 
-        if(!$this->prepared){
-            throw new \Exception('Transaction not prepare.');
-        }
+        $this->prepare();
         $this->localCommmit();
 
         if(!$this->data['_remoteCommitFailed']){

@@ -57,13 +57,13 @@ class YiMqClient
         return new TccSubtask($this,$this->getTransactionMessage(),$processor);
     }
 
-    public function prepare():TransactionMessage
-    {
-        if(!$this->hasTransactionMessage()){
-            throw new \Exception('Not begin a yimq transaction');
-        }
-        return $this->getTransactionMessage()->prepare();
-    }
+//    public function prepare():TransactionMessage
+//    {
+//        if(!$this->hasTransactionMessage()){
+//            throw new \Exception('Not begin a yimq transaction');
+//        }
+//        return $this->getTransactionMessage()->prepare();
+//    }
 
     public function commit():TransactionMessage
     {

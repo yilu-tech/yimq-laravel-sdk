@@ -7,7 +7,6 @@ namespace Tests\Feature;
 use Tests\App\Models\UserModel;
 use Tests\TestCase;
 use YiluTech\YiMQ\Constants\MessageStatus;
-use YiluTech\YiMQ\Constants\SubtaskStatus;
 
 class RealEnvMessageTest extends TestCase
 {
@@ -23,8 +22,6 @@ class RealEnvMessageTest extends TestCase
 
 
         $ecSubtask = \YiMQ::ec('user@user.update')->data($ecData)->run();
-        \YiMQ::prepare();
-        $this->assertDatabaseHas($this->messageTable,['id'=>$message->id,'status'=>MessageStatus::PENDING]);
         \YiMQ::commit();
         $this->assertDatabaseHas($this->messageTable,['id'=>$message->id,'status'=>MessageStatus::DONE]);
     }
@@ -41,9 +38,7 @@ class RealEnvMessageTest extends TestCase
         $ecData['id'] = $userModel->id;
         $ecData['username'] = $userModel->username.'.change';
         $ecSubtask = \YiMQ::ec('user@user.update')->data($ecData)->run();
-        \YiMQ::prepare();
-        $this->assertDatabaseHas($this->messageTable,['id'=>$message->id,'status'=>MessageStatus::PENDING]);
-        $this->assertDatabaseHas($this->subtaskTable,['id'=>$ecSubtask->id,'status'=>SubtaskStatus::PREPARED]);
+
         \YiMQ::rollback();
         $this->assertDatabaseHas($this->messageTable,['id'=>$message->id,'status'=>MessageStatus::CANCELED]);
         $this->assertDatabaseMissing($this->subtaskTable,['id'=>$ecSubtask->id]);
@@ -64,7 +59,7 @@ class RealEnvMessageTest extends TestCase
         }catch (\Exception $e){
             $this->assertEquals($e->getCode(),'HY000');
         }
-        \YiMQ::prepare();
+
         \YiMQ::commit();
         //暂停等待协调器去confirm
         usleep(800*1000);
@@ -77,7 +72,6 @@ class RealEnvMessageTest extends TestCase
         $message = \YiMQ::topic('user.create')->delay(1*1000)->data(['_remoteCommitFailed'=>'true'])->begin();
         $tccSubtask = \YiMQ::tcc('user@user.create')->data($tccData)->run();
         $this->assertDatabaseHas($this->subtaskTable,['id'=>$tccSubtask->id]);
-        \YiMQ::prepare();
         \YiMQ::commit();
         //暂停等待message超时确认message状态后去confirm
         sleep(3);
@@ -101,7 +95,6 @@ class RealEnvMessageTest extends TestCase
             $this->assertEquals($e->getCode(),'HY000');
         }
 
-        \YiMQ::prepare();
         \YiMQ::rollback();
         //通过插入数据确定username的杭锁已经释放
         UserModel::create(['username'=>$tccData['username']]);
@@ -114,7 +107,7 @@ class RealEnvMessageTest extends TestCase
         $tccSubtask = \YiMQ::tcc('user@user.create')->data($tccData)->run();
         $this->assertDatabaseHas($this->subtaskTable,['id'=>$tccSubtask->id]);
 
-        \YiMQ::prepare();
+
         \YiMQ::rollback();
         //通过插入数据确定username的杭锁已经释放
         UserModel::create(['username'=>$tccData['username']]);
