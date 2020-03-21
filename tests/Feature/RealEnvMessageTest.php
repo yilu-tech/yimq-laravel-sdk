@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use Tests\App\Models\UserModel;
 use Tests\TestCase;
 use YiluTech\YiMQ\Constants\MessageStatus;
+use YiluTech\YiMQ\Exceptions\YiMqHttpRequestException;
 
 class RealEnvMessageTest extends TestCase
 {
@@ -71,10 +72,19 @@ class RealEnvMessageTest extends TestCase
     public function testAddXaSubtaskLocalCommitFailedTimeoutCheck()
     {
         $tccData['username'] = "name-".$this->getUserId();
-        $message = \YiMQ::topic('user.create')->delay(1*1000)->data(['_remoteCommitFailed'=>'true'])->begin();
+        \YiMQ::mock()->commit()->reply(400);
+
+        $message = \YiMQ::topic('user.create')->delay(1*1000)->data([])->begin();
         $tccSubtask = \YiMQ::xa('user@user.create')->data($tccData)->run();
         $this->assertDatabaseHas($this->subtaskTable,['id'=>$tccSubtask->id]);
-        \YiMQ::commit();
+        $errorMsg = null;
+        try {
+            \YiMQ::commit();
+        }catch (YiMqHttpRequestException $e){
+            $errorMsg = $e->getMessage();
+        }
+        $this->assertEquals($errorMsg,'Mock: YiMq server 400 error.');
+
         //暂停等待message超时确认message状态后去confirm
         sleep(3);
         $this->assertDatabaseHas($this->userModelTable,['id'=>$tccSubtask->prepareResult['id']]);
@@ -103,15 +113,22 @@ class RealEnvMessageTest extends TestCase
     }
     public function testAddXaSubtaskRemoteRollbackFaildTimeoutCheck()
     {
-        $message = \YiMQ::topic('user.create')->delay(2*1000)->data(['_remoteCancelFailed'=>'true'])->begin();
+        \YiMQ::mock()->rollback()->reply(500);
+        $message = \YiMQ::topic('user.create')->delay(2*1000)->data([])->begin();
 
         $tccData['username'] = "name-".$this->getMessageId();
         $tccSubtask = \YiMQ::xa('user@user.create')->data($tccData)->run();
         $this->assertDatabaseHas($this->subtaskTable,['id'=>$tccSubtask->id]);
 
+        $errorMsg = null;
+        try {
+            \YiMQ::rollback();
+        }catch (\Exception $e){
+            $errorMsg = $e->getMessage();
+        }
+        $this->assertEquals($errorMsg,'Mock: YiMq server 500 error.');
 
-        \YiMQ::rollback();
-        //通过插入数据确定username的杭锁已经释放
+        //通过插入数据确定username的行锁已经释放
         UserModel::create(['username'=>$tccData['username']]);
     }
     /**
@@ -138,9 +155,9 @@ class RealEnvMessageTest extends TestCase
             $tccSubtask2 = \YiMQ::xa('user@user.create')->data($tccData2)->run();
         }catch (\Exception $e){
             \YiMQ::rollback();
-            $this->assertDatabaseMissing($this->userModelTable,['id'=>$tccSubtask1->prepareResult['id']]);
-            UserModel::create(['username'=>$tccData1['username']]);
         }
+        $this->assertDatabaseMissing($this->userModelTable,['id'=>$tccSubtask1->prepareResult['id']]);
+        UserModel::create(['username'=>$tccData1['username']]);
     }
 
 

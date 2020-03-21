@@ -64,9 +64,9 @@ class YiMqTransactionMessageMocker extends YiMqMocker
     {
         switch ($this->statusCode){
             case 400:
-                throw new YiMqHttpRequestException('YiMq server 400 error.');
+                throw new YiMqHttpRequestException('Mock: YiMq server 400 error.');
             case 500;
-                throw new YiMqHttpRequestException('YiMq server 500 error.');
+                throw new YiMqHttpRequestException('Mock: YiMq server 500 error.');
         }
 
         switch ($this->action){

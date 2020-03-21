@@ -109,9 +109,9 @@ class TransactionMessage extends Message
         $this->prepare();
         $this->localCommmit();
 
-        if(!$this->data['_remoteCommitFailed']){
-            $this->remoteCommit();
-        }
+
+        $this->remoteCommit();
+
         return $this;
     }
 
@@ -135,9 +135,7 @@ class TransactionMessage extends Message
         //TODO::添加一个mock锚点，测试rollback后修改message状态失败
         $this->model->status = MessageStatus::CANCELED;
         $this->model->save();
-        if(!$this->data['_remoteCancelFailed']){
-            $this->remoteRollback();
-        }
+        $this->remoteRollback();
 
         return $this;
     }
