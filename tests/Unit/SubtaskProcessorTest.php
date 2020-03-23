@@ -38,18 +38,18 @@ class SubtaskProcessorTest extends TestCase
         //第1次confirm
         $response = $this->post('/yimq',$data);
         $response->assertStatus(200);
-        $this->assertEquals($response->json()['status'],'succeed');
+        $this->assertEquals($response->json()['message'],'succeed');
         $this->assertDatabaseHas($this->processModelTable,['id'=>$id,'status'=>SubtaskStatus::DONE]);
 
         //第2次confirm
         $response = $this->post('/yimq',$data);
         $response->assertStatus(200);
-        $this->assertEquals($response->json()['status'],'retry_succeed');
+        $this->assertEquals($response->json()['message'],'retry_succeed');
 
         //尝试cancel后confirm
         $data['action'] = 'CANCEL';
         $response = $this->json('POST','/yimq',$data);
-        $response->assertStatus(400);
+        $response->assertStatus(500);
         $this->assertEquals($response->json()['message'],'Status is DONE.');
     }
 
@@ -78,7 +78,7 @@ class SubtaskProcessorTest extends TestCase
         ];
         $response = $this->post('/yimq',$data);
         $response->assertStatus(200);
-        $this->assertEquals($response->json()['status'],'retry_succeed');
+        $this->assertEquals($response->json()['message'],'retry_succeed');
         $this->assertDatabaseHas($this->processModelTable,['id'=>$id,'status'=>SubtaskStatus::CANCELED]);
     }
 
@@ -116,18 +116,18 @@ class SubtaskProcessorTest extends TestCase
         //第1次Cancel
         $response = $this->post('/yimq',$data);
         $response->assertStatus(200);
-        $this->assertEquals($response->json()['status'],'succeed');
+        $this->assertEquals($response->json()['message'],'succeed');
         $this->assertDatabaseHas($this->processModelTable,['id'=>$id,'status'=>SubtaskStatus::CANCELED]);
 
         //第2次Cancel
         $response = $this->post('/yimq',$data);
         $response->assertStatus(200);
-        $this->assertEquals($response->json()['status'],'retry_succeed');
+        $this->assertEquals($response->json()['message'],'retry_succeed');
 
         //cancel后尝试confirm
         $data['action'] = 'CONFIRM';
         $response = $this->json('POST','/yimq',$data);
-        $response->assertStatus(400);
+        $response->assertStatus(500);
         $this->assertEquals($response->json()['message'],'Status is not DONE.');
 
     }

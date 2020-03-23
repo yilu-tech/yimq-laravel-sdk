@@ -4,10 +4,13 @@
 namespace YiluTech\YiMQ\Exceptions;
 
 
-use Illuminate\Http\Exceptions\HttpResponseException;
-class YiMqSystemException extends HttpResponseException
+use RuntimeException;
+use Psr\Log\LoggerInterface;
+
+class YiMqSystemException extends RuntimeException
 {
     protected $code = 500;
+    protected $response;
     public function __construct($message = "",$data=null)
     {
         $data = [
@@ -19,8 +22,8 @@ class YiMqSystemException extends HttpResponseException
             "file" => $this->getFile(),
             "line" => $this->getLine()
         ]);
-        $respone = response()->json($data,$this->getCode());
-        parent::__construct($respone);
+        $this->response = response()->json($data,$this->getCode());
+        parent::__construct($message);
     }
 
     /**
@@ -31,6 +34,22 @@ class YiMqSystemException extends HttpResponseException
     public function getResponse()
     {
         return $this->response;
+    }
+
+    public function report()
+    {
+
+
+        try {
+            $logger = app()->make(LoggerInterface::class);
+        } catch (Exception $ex) {
+            throw $this;
+        }
+
+        $logger->error(
+            $this->getMessage(),
+            ['exception' => $this]
+        );
     }
 
 }
