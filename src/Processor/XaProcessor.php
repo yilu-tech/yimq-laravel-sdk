@@ -7,7 +7,6 @@ namespace YiluTech\YiMQ\Processor;
 use YiluTech\YiMQ\Constants\SubtaskStatus;
 use YiluTech\YiMQ\Constants\SubtaskType;
 use YiluTech\YiMQ\Exceptions\YiMqSystemException;
-use YiluTech\YiMQ\Models\ProcessModel;
 
 abstract class XaProcessor extends Processor
 {
@@ -24,11 +23,13 @@ abstract class XaProcessor extends Processor
 
         //1. 本地记录subtask
         $this->createProcess(SubtaskStatus::PREPARING);
-
+        //TODO:: 如果子任务已经存在就不开启事务了
         //2. 开启xa事务
+        $this->pdo->exec("set innodb_lock_wait_timeout=1");
         $this->pdo->exec("XA START '$this->id'");
         try{
             $this->setAndlockSubtaskModel();
+            $this->pdo->exec("set innodb_lock_wait_timeout=5");
             $prepareResult = $this->prepare();
             $this->processModel->status = SubtaskStatus::DONE;
             $this->processModel->save();
@@ -50,7 +51,7 @@ abstract class XaProcessor extends Processor
         $this->id = $context['id'];
         try{
             $this->pdo->exec("XA COMMIT '$this->id'");
-            return ['status'=>"succeed"];
+            return ['message'=>"succeed"];
         }catch (\Exception $e){
             if($e->getCode() != "XAE04"){
                 throw  $e;
@@ -59,9 +60,9 @@ abstract class XaProcessor extends Processor
             //如果不是xa id不存在，就锁定任务记录，判断状态是否已为done
             $this->setAndlockSubtaskModel();
             if($this->processModel->status == SubtaskStatus::DONE){
-                return ['status'=>"retry_succeed"];
+                return ['message'=>"retry_succeed"];
             }
-            abort(400,"Status is not DONE.");
+            throw new YiMqSystemException("Status is not DONE.");
         }
 
     }
@@ -71,7 +72,7 @@ abstract class XaProcessor extends Processor
         try{
             $this->pdo->exec("XA ROLLBACK '$this->id'");
             $this->setSubtaskStatusCanceled();
-            return ['status'=>"succeed"];
+            return ['message'=>"succeed"];
         }catch (\Exception $e){
             if($e->getCode() != "XAE04"){
                 throw  $e;
@@ -80,14 +81,14 @@ abstract class XaProcessor extends Processor
             //如果不是xa id不存在，就锁定任务记录，判断状态是否已为done
             $this->setAndlockSubtaskModel();
             if($this->processModel->status == SubtaskStatus::CANCELED){
-                return ['status'=>"retry_succeed"];
+                return ['message'=>"retry_succeed"];
             }
             if($this->processModel->status == SubtaskStatus::PREPARING){
                 $this->setSubtaskStatusCanceled();
-                return ['status'=>"retry_succeed"];
+                return ['message'=>"retry_succeed"];
             }
             $status = $this->statusMap[$this->processModel->status];
-            abort(400,"Status is $status.");
+            throw new YiMqSystemException("Status is $status.");
         }
 
     }

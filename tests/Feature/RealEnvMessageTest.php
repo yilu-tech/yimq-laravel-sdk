@@ -148,11 +148,11 @@ class RealEnvMessageTest extends TestCase
 
 
 
-        $message = \YiMQ::topic('user.create')->begin();
+        $message = \YiMQ::topic('user.create')->delay(10*1000)->begin();
         $tccSubtask1 = \YiMQ::xa('user@user.create')->data($tccData1)->run();
 
         try{
-            $tccSubtask2 = \YiMQ::xa('user@user.create')->data($tccData2)->run();
+            $tccSubtask2 = \YiMQ::xa('user@user.create')->data($tccData2)-> run();
         }catch (\Exception $e){
             \YiMQ::rollback();
         }
@@ -160,6 +160,31 @@ class RealEnvMessageTest extends TestCase
         UserModel::create(['username'=>$tccData1['username']]);
     }
 
+
+    public function testAddXaSubtaskTryFailedRemoteCheckoutAfterRollback()
+    {
+        \DB::getPdo()->exec("set innodb_lock_wait_timeout=1");
+
+        $userModel = $this->createMockUser();
+        $tccData2['username'] = $userModel->username;
+
+        $tccData1['username'] = "name-".$this->getUserId();
+
+
+
+        $message = \YiMQ::topic('user.create')->delay(1*1000)->begin();
+        $tccSubtask1 = \YiMQ::xa('user@user.create')->data($tccData1)->run();
+
+        try{
+            $tccSubtask2 = \YiMQ::xa('user@user.create')->data($tccData2)-> run();
+        }catch (\Exception $e){
+            \DB::reconnect();//释放锁
+            sleep(3);
+            \YiMQ::rollback();
+        }
+        $this->assertDatabaseMissing($this->userModelTable,['id'=>$tccSubtask1->prepareResult['id']]);
+        UserModel::create(['username'=>$tccData1['username']]);
+    }
 
 
 }

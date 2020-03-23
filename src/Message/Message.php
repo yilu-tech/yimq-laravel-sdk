@@ -15,7 +15,7 @@ abstract class Message
     public  $model;
     public $id;
     public $mockManager;
-    public $delay;
+    public $delay = 2000;
     public $data;
     public function __construct(YiMqClient $client,$topic)
     {

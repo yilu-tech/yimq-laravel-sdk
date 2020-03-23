@@ -43,7 +43,7 @@ class YiMqActor
         \Log::debug($context);
         $messageModel = MessageModel::lockForUpdate()->find($context['message_id']);
         if(!isset($messageModel)){
-            abort(400,'Message not exists.');
+            throw new YiMqSystemException('Message not exists.');
         }
         if($messageModel->status == MessageStatus::DONE){
             return ['status'=>'DONE'];

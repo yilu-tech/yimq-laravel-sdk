@@ -136,7 +136,7 @@ class YiMqClient
                 'json' => $context
             ]);
         } catch (RequestException $e) {
-//            dump($e->getResponse()->getBody()->getContents());
+
             if ($e instanceof ConnectException) {
                 $url = $e->getHandlerContext()['url'];
                 $msg = "MicroApi can not connect: $url";
@@ -145,7 +145,6 @@ class YiMqClient
             } else {
                 $msg = $e->getMessage();
             }
-
             throw new YiMqHttpRequestException($msg, $e);
         }
 
