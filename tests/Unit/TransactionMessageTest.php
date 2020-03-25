@@ -205,4 +205,18 @@ class TransactionMessageTest extends TestCase
         $response->assertStatus(200);
         $this->assertEquals($response->json('status'),"DONE");
     }
+
+    public function testAddBcstSubtaskAndPrepare()
+    {
+        \YiMQ::mock()->topic('content.update')->reply(200);
+        \YiMQ::mock()->prepare()->reply(200);
+        \YiMQ::mock()->commit()->reply(200);
+
+        $message = \YiMQ::topic('content.update')->begin();
+        $bcstSubtask = \YiMQ::bcst('content.change')->data(['title'=>'new title1'])->run();
+        \YiMQ::commit();
+        $this->assertDatabaseHas($this->subtaskTable,['id'=>$bcstSubtask->id]);
+
+    }
+
 }

@@ -1,7 +1,7 @@
 <?php
 
 
-namespace YiluTech\YiMQ\Processor;
+namespace YiluTech\YiMQ\Processor\BaseProcessor;
 
 
 use YiluTech\YiMQ\Constants\SubtaskStatus;
@@ -15,6 +15,8 @@ abstract class Processor
     protected $data;
     protected $processModel;
     public $type;
+    public $serverType;
+    public $context;
     protected $statusMap = [
         SubtaskStatus::PREPARING => 'PREPARING',
         SubtaskStatus::PREPARED => 'PREPARED',
@@ -29,17 +31,18 @@ abstract class Processor
         $this->message_id = $context['message_id'];
         $this->processor = $context['processor'];
         $this->data = $context['data'];
+        $this->context = $context;
     }
 
-    protected function checkSubtaskType($currentType,$subtaskType){
-        if($currentType != $subtaskType){
-            throw new YiMqSystemException("<$currentType>processor can not process  <$subtaskType>subtask.");
+    public function subtaskMatchProcessor($contextType){
+        if($this->serverType != $contextType){
+            throw new YiMqSystemException("<".$this->serverType.">processor can not process  <".$contextType.">subtask.");
         }
     }
     protected function setAndlockSubtaskModel(){
         $this->processModel =  ProcessModel::lockForUpdate()->find($this->id);
         if(!isset($this->processModel)){
-            throw new YiMqSystemException("Subtask $this->id not exists");
+            throw new YiMqSystemException("ProcessorSubtask $this->id not exists");
         }
     }
 
@@ -65,5 +68,9 @@ abstract class Processor
     private function afterTransaction(){
 
     }
-    abstract public function runConfirm($context);
+    public function runConfirm($context){
+        $this->subtaskMatchProcessor($context['type']);
+        return $this->_runConfirm($context);
+    }
+    abstract function _runConfirm($context);
 }

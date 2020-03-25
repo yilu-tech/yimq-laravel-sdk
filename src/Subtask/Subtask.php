@@ -14,20 +14,16 @@ abstract class Subtask
     public $type;
     public $id;
     protected $client;
-    public $processor;
     protected $message;
     protected $data;
     protected $mockManager;
     public $model;
 
-    public function __construct(YiMqClient $client,TransactionMessage $message, $processor)
+    public function __construct(YiMqClient $client,TransactionMessage $message)
     {
         $this->client = $client;
         $this->mockManager = $client->getMockManager();
         $this->message = $message;
-        $this->processor = $processor;
-
-
     }
 
     public function data($data):Subtask
@@ -39,4 +35,5 @@ abstract class Subtask
         return $this->data;
     }
     abstract public function run();
+    abstract public function getContext();
 }

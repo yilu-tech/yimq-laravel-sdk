@@ -4,16 +4,24 @@
 namespace YiluTech\YiMQ\Processor;
 
 
+use YiluTech\YiMQ\Constants\SubtaskServerType;
 use YiluTech\YiMQ\Constants\SubtaskStatus;
 use YiluTech\YiMQ\Constants\SubtaskType;
 use YiluTech\YiMQ\Exceptions\YiMqSystemException;
+use YiluTech\YiMQ\Processor\BaseProcessor\BaseTccProcessor;
 
-abstract class TccProcessor extends Processor
+abstract class TccProcessor extends BaseTccProcessor
 {
     public $type = SubtaskType::TCC;
-    public function runTry($context){
-        $this->checkSubtaskType('TCC',$context['type']);
-        $this->setContextToThis($context);
+    public $serverType=SubtaskServerType::TCC;
+
+    abstract public function try();
+    abstract public function cancel();
+    abstract public function confirm();
+
+
+
+    public function _runTry($context){
 
         //1. 本地记录subtask
         $this->createProcess(SubtaskStatus::PREPARING);
@@ -37,11 +45,9 @@ abstract class TccProcessor extends Processor
         }
     }
 
-    abstract public function try();
 
-    public function runConfirm($context)
+    public function _runConfirm($context)
     {
-        $this->id = $context['subtask_id'];
         //2. 开启事务
         \DB::beginTransaction();
         $this->setAndlockSubtaskModel();
@@ -73,12 +79,10 @@ abstract class TccProcessor extends Processor
         }
     }
 
-    abstract public function confirm();
 
-    public function runCancel($context)
+
+    public function _runCancel($context)
     {
-        $this->id = $context['subtask_id'];
-
         //2. 开启事务
         \DB::beginTransaction();
         $this->setAndlockSubtaskModel();
@@ -113,7 +117,7 @@ abstract class TccProcessor extends Processor
         }
     }
 
-    abstract public function cancel();
+
 
 
 

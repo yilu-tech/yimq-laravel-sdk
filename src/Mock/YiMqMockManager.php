@@ -29,6 +29,7 @@ class YiMqMockManager
     }
 
     public function getMocker($object,$conditions=[]){
+
         foreach($this->mockers as $mocker){
             if(get_class($object) == $mocker->getType() && $mocker->checkConditions($object,$conditions)){
                 $mocker->setTarget($object);

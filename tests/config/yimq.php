@@ -27,7 +27,7 @@ return [
      * 消息事件监听器
      */
     'listeners'=>[
-
+        \Tests\Services\UserUpdateListener::class => 'user@user.update',
     ]
 
 

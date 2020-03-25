@@ -5,12 +5,21 @@ namespace YiluTech\YiMQ\Subtask;
 
 use YiluTech\YiMQ\Constants\SubtaskStatus;
 use YiluTech\YiMQ\Constants\SubtaskType;
+use YiluTech\YiMQ\Message\TransactionMessage;
 use YiluTech\YiMQ\Models\Subtask as SubtaskModel;
+use YiluTech\YiMQ\YiMqClient;
 
-class EcSubtask extends ProcessorSubtask
+class BcstSubtask extends Subtask
 {
-    public $serverType = "EC";
-    public $type = SubtaskType::EC;
+    public $serverType = "BCST";
+    public $type = SubtaskType::BCST;
+    public $topic;
+
+    public function __construct(YiMqClient $client, TransactionMessage $message,$topic)
+    {
+        parent::__construct($client, $message);
+        $this->topic = $topic;
+    }
 
     public function run()
     {
@@ -29,8 +38,10 @@ class EcSubtask extends ProcessorSubtask
     public function getContext(){
         return [
             'type'=> $this->serverType,
-            'processor'=>$this->processor,
+            'topic'=>$this->topic,
             'data'=> $this->getData()
         ];
     }
+
+
 }

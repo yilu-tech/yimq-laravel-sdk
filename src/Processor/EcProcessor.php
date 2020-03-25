@@ -7,14 +7,15 @@ namespace YiluTech\YiMQ\Processor;
 use YiluTech\YiMQ\Constants\SubtaskStatus;
 use YiluTech\YiMQ\Constants\SubtaskType;
 use YiluTech\YiMQ\Models\ProcessModel;
+use YiluTech\YiMQ\Processor\BaseProcessor\Processor;
 
 abstract class EcProcessor extends Processor
 {
 
+    public $serverType = 'EC';
     public $type = SubtaskType::EC;
-    public function runConfirm($context)
+    public function _runConfirm($context)
     {
-        $this->checkSubtaskType('EC',$context['type']);
         $this->setContextToThis($context);
 
         $subtaskModel =  ProcessModel::find($this->id);

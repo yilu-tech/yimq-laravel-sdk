@@ -13,7 +13,7 @@ use YiluTech\YiMQ\Models\Message As MessageModel;
 class TransactionMessage extends Message
 {
     public $tccSubtasks = [];
-    public $ecSubtasks = [];
+    public $prepareSubtasks = [];
     public $prepared = false;
     public function begin():TransactionMessage
     {
@@ -67,25 +67,22 @@ class TransactionMessage extends Message
         array_push($this->tccSubtasks,$subtask);
     }
     public function addEcSubtask($subtask){
-        array_push($this->ecSubtasks,$subtask);
+        array_push($this->prepareSubtasks,$subtask);
     }
 
     private function prepare(){
         $context = [
             'message_id' => $this->id,
-            'ec_subtasks' => []
+            'prepare_subtasks' => []
         ];
         //如果没有ecSubtask就不发起远程调用
-        if(count($this->ecSubtasks) == 0){
+        if(count($this->prepareSubtasks) == 0){
             $this->prepared = true;
             return $this;
         }
-        foreach ($this->ecSubtasks as $subtask){
-            $ecSubtask = [
-                'processor' => $subtask->processor,
-                'data' => $subtask->getData()
-            ];
-            array_push($context['ec_subtasks'],$ecSubtask);
+        foreach ($this->prepareSubtasks as $subtask){
+            $prepareSubtask = $subtask->getContext();
+            array_push($context['prepare_subtasks'],$prepareSubtask);
         }
         $mockConditions['action'] = TransactionMessageAction::PREPARE;
         if($this->mockManager->hasMocker($this,$mockConditions)){//TODO 增加一个test环境生效的判断
@@ -98,9 +95,9 @@ class TransactionMessage extends Message
         return $this;
     }
     private function preparedSaveToDb($result){
-        foreach ($this->ecSubtasks as $key => $ecSubtask ){
-            $ecSubtask->id = $result['ec_subtasks'][$key]['id'];
-            $ecSubtask->save();
+        foreach ($this->prepareSubtasks as $key => $subtask ){
+            $subtask->id = $result['prepare_subtasks'][$key]['id'];
+            $subtask->save();
         }
     }
 

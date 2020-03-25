@@ -9,5 +9,6 @@ class SubtaskType
     CONST EC = 10;
     CONST TCC = 20;
     CONST XA = 30;
+    CONST BCST = 60;
 
 }

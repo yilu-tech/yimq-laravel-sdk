@@ -8,7 +8,7 @@ use YiluTech\YiMQ\Constants\SubtaskStatus;
 use YiluTech\YiMQ\Constants\SubtaskType;
 use YiluTech\YiMQ\Models\Subtask as SubtaskModel;
 
-class TccSubtask extends Subtask
+class TccSubtask extends ProcessorSubtask
 {
     public $serverType = 'TCC';
     public $type = SubtaskType::TCC;
@@ -17,16 +17,10 @@ class TccSubtask extends Subtask
     public function run()
     {
 
-        $context = [
-            'message_id' => $this->message->id,
-            'type' => $this->serverType,
-            'processor' => $this->processor,
-            'data' => $this->data
-        ];
         if($this->mockManager->hasMocker($this)){//TODO 增加一个test环境生效的判断
             $result = $this->mockManager->runMocker($this);
         }else{
-            $result = $this->client->callServer('subtask',$context);
+            $result = $this->client->callServer('subtask',$this->getContext());
         }
         $this->id = $result['id'];
         $this->prepareResult = $result['prepareResult'];
@@ -41,5 +35,15 @@ class TccSubtask extends Subtask
 
         $this->message->addTccSubtask($this);
         return $this;
+    }
+
+    public function getContext()
+    {
+        return [
+            'message_id' => $this->message->id,
+            'type' => $this->serverType,
+            'processor' => $this->processor,
+            'data' => $this->data
+        ];
     }
 }

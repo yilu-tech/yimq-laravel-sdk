@@ -4,22 +4,23 @@
 namespace YiluTech\YiMQ\Processor;
 
 
+use YiluTech\YiMQ\Constants\SubtaskServerType;
 use YiluTech\YiMQ\Constants\SubtaskStatus;
 use YiluTech\YiMQ\Constants\SubtaskType;
 use YiluTech\YiMQ\Exceptions\YiMqSystemException;
+use YiluTech\YiMQ\Processor\BaseProcessor\BaseTccProcessor;
 
-abstract class XaProcessor extends Processor
+abstract class XaProcessor extends BaseTccProcessor
 {
     public $type = SubtaskType::XA;
     private $pdo;
+    public $serverType = SubtaskServerType::XA;
     public function __construct()
     {
         $this->pdo = \DB::connection()->getPdo();
     }
 
-    public function runTry($context){
-        $this->checkSubtaskType('XA',$context['type']);
-        $this->setContextToThis($context);
+    public function _runTry($context){
 
         //1. 本地记录subtask
         $this->createProcess(SubtaskStatus::PREPARING);
@@ -47,8 +48,7 @@ abstract class XaProcessor extends Processor
 
     }
 
-    public function runConfirm($context){
-        $this->id = $context['id'];
+    public function _runConfirm($context){
         try{
             $this->pdo->exec("XA COMMIT '$this->id'");
             return ['message'=>"succeed"];
@@ -62,13 +62,13 @@ abstract class XaProcessor extends Processor
             if($this->processModel->status == SubtaskStatus::DONE){
                 return ['message'=>"retry_succeed"];
             }
-            throw new YiMqSystemException("Status is not DONE.");
+            $status = $this->statusMap[$this->processModel->status];
+            throw new YiMqSystemException("Status is $status.");
         }
 
     }
 
-    public function runCancel($context){
-        $this->id = $context['id'];
+    public function _runCancel($context){
         try{
             $this->pdo->exec("XA ROLLBACK '$this->id'");
             $this->setSubtaskStatusCanceled();

@@ -15,6 +15,7 @@ use YiluTech\YiMQ\Exceptions\YiMqHttpRequestException;
 use YiluTech\YiMQ\Message\TransactionMessage;
 use YiluTech\YiMQ\Mock\YiMqMockerBuilder;
 use YiluTech\YiMQ\Mock\YiMqMockManager;
+use YiluTech\YiMQ\Subtask\BcstSubtask;
 use YiluTech\YiMQ\Subtask\EcSubtask;
 use YiluTech\YiMQ\Subtask\TccSubtask;
 use YiluTech\YiMQ\Subtask\XaSubtask;
@@ -96,6 +97,14 @@ class YiMqClient
         }
         return new EcSubtask($this,$this->getTransactionMessage(),$processor);
     }
+    public function bcst(String $topic): BcstSubtask
+    {
+        if(!$this->hasTransactionMessage()){
+            throw new \Exception('Not begin a yimq transaction');
+        }
+        return new BcstSubtask($this,$this->getTransactionMessage(),$topic);
+    }
+
 
 
 

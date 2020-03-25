@@ -32,6 +32,7 @@ class SubtaskProcessorTest extends TestCase
 
         $data['action'] = 'CONFIRM';
         $data['context'] = [
+            'type' => 'XA',
             'id' => $id,
             'processor' => $processor,
         ];
@@ -73,6 +74,7 @@ class SubtaskProcessorTest extends TestCase
 
         $data['action'] = 'CANCEL';
         $data['context'] = [
+            'type' => 'XA',
             'id' => $id,
             'processor' => $processor
         ];
@@ -110,6 +112,7 @@ class SubtaskProcessorTest extends TestCase
 
         $data['action'] = 'CANCEL';
         $data['context'] = [
+            'type' => 'XA',
             'id' => $id,
             'processor' => $processor
         ];
@@ -128,7 +131,7 @@ class SubtaskProcessorTest extends TestCase
         $data['action'] = 'CONFIRM';
         $response = $this->json('POST','/yimq',$data);
         $response->assertStatus(500);
-        $this->assertEquals($response->json()['message'],'Status is not DONE.');
+        $this->assertEquals($response->json()['message'],'Status is CANCELED.');
 
     }
 
@@ -157,7 +160,8 @@ class SubtaskProcessorTest extends TestCase
 
         $data['action'] = 'CONFIRM';
         $data['context'] = [
-            'subtask_id' => $id,
+            'type' => 'TCC',
+            'id' => $id,
             'processor' => $processor
         ];
         //第1次confirm
@@ -201,7 +205,8 @@ class SubtaskProcessorTest extends TestCase
 
         $data['action'] = 'CANCEL';
         $data['context'] = [
-            'subtask_id' => $id,
+            'type' => 'TCC',
+            'id' => $id,
             'processor' => $processor
         ];
         $response = $this->json('POST','/yimq',$data);
@@ -234,7 +239,8 @@ class SubtaskProcessorTest extends TestCase
 
         $data['action'] = 'CANCEL';
         $data['context'] = [
-            'subtask_id' => $id,
+            'type' => 'TCC',
+            'id' => $id,
             'processor' => $processor
         ];
         //第1次Cancel
@@ -304,6 +310,33 @@ class SubtaskProcessorTest extends TestCase
         $response->assertStatus(500);
         $this->assertDatabaseMissing($this->userModelTable,['id'=>$userModel1->id,'username'=>$data['context']['data']['username']]);
         $this->assertDatabaseHas($this->processModelTable,['id'=>$id,'status'=>SubtaskStatus::DOING]);
+    }
+
+    public function testBcstCommitSuccess()
+    {
+        $id = $this->getProcessId();
+        $userModel = $this->createMockUser();
+        $data['action'] = 'CONFIRM';
+        $data['context'] = [
+            'type' => 'BCST',
+            'processor' => \Tests\Services\UserUpdateListener::class,
+            'topic'=>'user@user.update',
+            'id' => $id,
+            'message_id' => '1',
+            'data' => [
+                'id'=>$userModel->id,
+                'username'=>"test$id"
+            ]
+        ];
+
+        $response = $this->json('POST','/yimq',$data);
+        $response->assertStatus(200);
+        $this->assertDatabaseHas($this->userModelTable,['id'=>$userModel->id,'username'=>$data['context']['data']['username']]);
+        $this->assertDatabaseHas($this->processModelTable,['id'=>$id,'status'=>SubtaskStatus::DONE]);
+
+        $response = $this->json('POST','/yimq',$data);
+        $response->assertStatus(200);
+        $this->assertEquals($response->json()['status'],'retry_succeed');
     }
 
 }
