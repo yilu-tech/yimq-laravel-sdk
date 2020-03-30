@@ -2,6 +2,8 @@
 namespace YiluTech\YiMQ;
 
 use Illuminate\Support\ServiceProvider;
+use SebastianBergmann\Environment\Console;
+use YiluTech\YiMQ\Console\YiMqPublishCommand;
 
 class YiMqServiceProvider extends ServiceProvider
 {
@@ -11,6 +13,9 @@ class YiMqServiceProvider extends ServiceProvider
         ]);
         $this->loadRoutesFrom(__DIR__.'/Http/routes.php');
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        $this->commands([
+            YiMqPublishCommand::class
+        ]);
     }
 
 

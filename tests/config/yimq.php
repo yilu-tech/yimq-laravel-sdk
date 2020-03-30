@@ -2,17 +2,13 @@
 
 return [
 
-    'actor_name' => env('YIMQ_ACTOR_NAME'),
+    'actor_name' => 'user',
     'services' => [
         'default' =>[
             'uri' => env('YIMQ_DEFALUT_SERVICE_URI'),
             'headers'=>[
             ]
         ]
-    ],
-
-    'topics' => [
-        'user.create'
     ],
     /**
      * 消息参与处理器
@@ -26,7 +22,12 @@ return [
     /**
      * 消息事件监听器
      */
-    'listeners'=>[
+    'broadcast_topics' => [
+        'user.create' => [
+            'allows'=>[]
+        ]
+    ],
+    'broadcast_listeners'=>[
         \Tests\Services\UserUpdateListener::class => 'user@user.update',
     ]
 

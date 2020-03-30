@@ -73,4 +73,8 @@ abstract class Processor
         return $this->_runConfirm($context);
     }
     abstract function _runConfirm($context);
+
+    public function getOptions(){
+        return [];
+    }
 }

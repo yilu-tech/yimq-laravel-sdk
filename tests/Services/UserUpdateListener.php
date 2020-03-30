@@ -13,6 +13,15 @@ class UserUpdateListener extends BcstProcessor
 {
 
 
+    public function getCondition(){
+        return <<<EOT
+        if(data.id > 1){
+            return true;
+        }
+EOT;
+    }
+
+
     protected function do()
     {
         $userModel = UserModel::find($this->data['id']);
