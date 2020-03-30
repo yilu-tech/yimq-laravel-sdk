@@ -21,7 +21,7 @@ class YiMqActor
     {
         $this->app = $app;
         $this->processorsMap = config('yimq.processors');
-        $this->listenersMap = config('yimq.listeners');
+        $this->listenersMap = config('yimq.broadcast_listeners');
 
     }
 
@@ -80,11 +80,11 @@ class YiMqActor
             return resolve($processor);
         }else if(in_array($context['type'],[SubtaskServerType::XA,SubtaskServerType::TCC,SubtaskServerType::EC])) {
             $processor = $context['processor'];
-            [$actorName,$processorName] = explode("@",$processor);
-            if(!isset($this->processorsMap[$processorName])){
+
+            if(!isset($this->processorsMap[$processor])){
                 throw new YiMqSystemException("Processor <$processor> not exists");
             }
-            return resolve($this->processorsMap[$processorName]);
+            return resolve($this->processorsMap[$processor]);
         }else{
             throw new YiMqSystemException("Subtask type ". $context['type'] . 'not suport.');
         }

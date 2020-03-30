@@ -10,7 +10,7 @@ class SubtaskProcessorTest extends TestCase
     public function testXaTryCommit()
     {
         $id = $this->getProcessId();
-        $processor = 'user@user.create';
+        $processor = 'user.create';
         $data['action'] = 'TRY';
         $data['context'] = [
             'type' => 'XA',
@@ -57,7 +57,7 @@ class SubtaskProcessorTest extends TestCase
     public function testXaTryFailedAutoRollback()
     {
         $id = $this->getProcessId();
-        $processor = 'user@user.create';
+        $processor = 'user.create';
         $data['action'] = 'TRY';
         $data['context'] = [
             'type' => 'XA',
@@ -88,7 +88,7 @@ class SubtaskProcessorTest extends TestCase
     public function testXaTryAfterRollback()
     {
         $id = $this->getProcessId();
-        $processor = 'user@user.create';
+        $processor = 'user.create';
         $data['action'] = 'TRY';
         $data['context'] = [
             'type' => 'XA',
@@ -139,7 +139,7 @@ class SubtaskProcessorTest extends TestCase
     public function testTccTryCommit()
     {
         $id = $this->getProcessId();
-        $processor = 'user@user.tcc_create';
+        $processor = 'user.tcc_create';
         $username = "test$id";
         $data['action'] = 'TRY';
         $data['context'] = [
@@ -188,7 +188,7 @@ class SubtaskProcessorTest extends TestCase
     public function testTccTryFailedAutoRollback()
     {
         $id = $this->getProcessId();
-        $processor = 'user@user.tcc_create';
+        $processor = 'user.tcc_create';
         $data['action'] = 'TRY';
         $data['context'] = [
             'type' => 'TCC',
@@ -218,7 +218,7 @@ class SubtaskProcessorTest extends TestCase
     public function testTccTryAfterRollback()
     {
         $id = $this->getProcessId();
-        $processor = 'user@user.tcc_create';
+        $processor = 'user.tcc_create';
         $data['action'] = 'TRY';
         $data['context'] = [
             'type' => 'TCC',
@@ -269,7 +269,7 @@ class SubtaskProcessorTest extends TestCase
         $data['action'] = 'CONFIRM';
         $data['context'] = [
             'type' => 'EC',
-            'processor' => 'user@user.update',
+            'processor' => 'user.update',
             'id' => $id,
             'message_id' => '1',
             'data' => [
@@ -297,7 +297,7 @@ class SubtaskProcessorTest extends TestCase
         $data['action'] = 'CONFIRM';
         $data['context'] = [
             'type' => 'EC',
-            'processor' => 'user@user.update',
+            'processor' => 'user.update',
             'id' => $id,
             'message_id' => '1',
             'data' => [
