@@ -3,6 +3,10 @@
 return [
 
     'actor_name' => 'user',
+    'route' => [
+        'prefix' => 'test',
+        'name' =>'internal@test.yimq',
+    ],
     'services' => [
         'default' =>[
             'uri' => env('YIMQ_DEFALUT_SERVICE_URI'),
