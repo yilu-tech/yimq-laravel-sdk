@@ -2,7 +2,11 @@
 
 return [
 
-    'actor_name' => env('YIMQ_ACTOR_NAME'),
+    'actor_name' => 'xxx',
+    'route' => [
+        'prefix' => '',//url前缀
+        'name' =>'internal@test.yimq',//路由名称
+    ],
     'services' => [
         'default' =>[
             'uri' => env('YIMQ_DEFALUT_SERVICE_URI'),
@@ -12,18 +16,21 @@ return [
     ],
 
     'topics' => [
-        'user.create'
     ],
     /**
-     * 消息参与处理器
+     * 处理器
      */
     'processors'=>[
     ],
     /**
-     * 消息事件监听器
+     * 广播消息主题
      */
-    'listeners'=>[
-
+    'broadcast_topics' => [
+    ],
+    /**
+     * 广播消息监听器注册
+     */
+    'broadcast_listeners'=>[
     ]
 
 
