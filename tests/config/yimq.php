@@ -4,7 +4,7 @@ return [
 
     'actor_name' => 'user',
     'route' => [
-        'prefix' => 'test',
+        'prefix' => '',
         'name' =>'internal@test.yimq',
     ],
     'services' => [
