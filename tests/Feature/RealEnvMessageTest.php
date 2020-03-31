@@ -18,7 +18,7 @@ class RealEnvMessageTest extends TestCase
         $ecData['id'] = $userModel->id;
         $ecData['username'] = $userModel->username.'.change';
 
-        $message = \YiMQ::topic('user.create')->begin();
+        $message = \YiMQ::transaction('user.create')->begin();
         $this->assertDatabaseHas($this->messageTable,['id'=>$message->id]);
 
 
@@ -35,7 +35,7 @@ class RealEnvMessageTest extends TestCase
 
         $id = $this->getSubtaskId();
 
-        $message = \YiMQ::topic('user.create')->begin();
+        $message = \YiMQ::transaction('user.create')->begin();
         $this->assertDatabaseHas($this->messageTable,['id'=>$message->id]);
 
         $ecData['id'] = $userModel->id;
@@ -50,7 +50,7 @@ class RealEnvMessageTest extends TestCase
     public function testAddXaSubtask()
     {
         $tccData['username'] = "name-".$this->getUserId();
-        $message = \YiMQ::topic('user.create')->delay(10*1000)->begin();
+        $message = \YiMQ::transaction('user.create')->delay(10*1000)->begin();
 
 
         $tccSubtask = \YiMQ::xa('user@user.create')->data($tccData)->run();
@@ -74,7 +74,7 @@ class RealEnvMessageTest extends TestCase
         $tccData['username'] = "name-".$this->getUserId();
         \YiMQ::mock()->commit()->reply(400);
 
-        $message = \YiMQ::topic('user.create')->delay(1*1000)->data([])->begin();
+        $message = \YiMQ::transaction('user.create')->delay(1*1000)->data([])->begin();
         $tccSubtask = \YiMQ::xa('user@user.create')->data($tccData)->run();
         $this->assertDatabaseHas($this->subtaskTable,['id'=>$tccSubtask->id]);
         $errorMsg = null;
@@ -93,7 +93,7 @@ class RealEnvMessageTest extends TestCase
 
     public function testAddXaSubtaskRollback()
     {
-        $message = \YiMQ::topic('user.create')->delay(10*1000)->begin();
+        $message = \YiMQ::transaction('user.create')->delay(10*1000)->begin();
 
         $tccData['username'] = "name-".$this->getMessageId();
         $tccSubtask = \YiMQ::xa('user@user.create')->data($tccData)->run();
@@ -114,7 +114,7 @@ class RealEnvMessageTest extends TestCase
     public function testAddXaSubtaskRemoteRollbackFaildTimeoutCheck()
     {
         \YiMQ::mock()->rollback()->reply(500);
-        $message = \YiMQ::topic('user.create')->delay(2*1000)->data([])->begin();
+        $message = \YiMQ::transaction('user.create')->delay(2*1000)->data([])->begin();
 
         $tccData['username'] = "name-".$this->getMessageId();
         $tccSubtask = \YiMQ::xa('user@user.create')->data($tccData)->run();
@@ -148,7 +148,7 @@ class RealEnvMessageTest extends TestCase
 
 
 
-        $message = \YiMQ::topic('user.create')->delay(10*1000)->begin();
+        $message = \YiMQ::transaction('user.create')->delay(10*1000)->begin();
         $tccSubtask1 = \YiMQ::xa('user@user.create')->data($tccData1)->run();
 
         try{
@@ -172,7 +172,7 @@ class RealEnvMessageTest extends TestCase
 
 
 
-        $message = \YiMQ::topic('user.create')->delay(1*1000)->begin();
+        $message = \YiMQ::transaction('user.create')->delay(1*1000)->begin();
         $tccSubtask1 = \YiMQ::xa('user@user.create')->data($tccData1)->run();
 
         try{

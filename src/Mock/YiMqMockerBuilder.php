@@ -23,7 +23,7 @@ class YiMqMockerBuilder
     public function xa($processor):YiMqTccSubtaskMocker{
         return new YiMqXaSubtaskMocker($this->client,$processor);
     }
-    public function topic($topic):YiMqTransactionMessageMocker{
+    public function transaction($topic):YiMqTransactionMessageMocker{
         $mocker =  new YiMqTransactionMessageMocker($this->client);
         $mocker->setTopic($topic);
         return $mocker;

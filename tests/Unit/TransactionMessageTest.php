@@ -11,11 +11,11 @@ class TransactionMessageTest extends TestCase
 {
 
     public function testMessageCommit(){
-        \YiMQ::mock()->topic('user.create')->reply(200);
+        \YiMQ::mock()->transaction('user.create')->reply(200);
         \YiMQ::mock()->prepare()->reply(200);
         \YiMQ::mock()->commit()->reply(200);
 
-        $message = \YiMQ::topic('user.create')->begin();
+        $message = \YiMQ::transaction('user.create')->begin();
         $this->assertDatabaseHas($this->messageTable,['id'=>$message->id]);
         \YiMQ::commit();
         $this->assertDatabaseHas($this->messageTable,['id'=>$message->id,'status'=>MessageStatus::DONE]);
@@ -30,11 +30,11 @@ class TransactionMessageTest extends TestCase
     }
 
     public function testMessageCommitLocalSuccessRemoteFailed(){
-        \YiMQ::mock()->topic('user.create')->reply(200);
+        \YiMQ::mock()->transaction('user.create')->reply(200);
         \YiMQ::mock()->prepare()->reply(200);
         \YiMQ::mock()->commit()->reply(400);
 
-        $message = \YiMQ::topic('user.create')->begin();
+        $message = \YiMQ::transaction('user.create')->begin();
         $this->assertDatabaseHas($this->messageTable,['id'=>$message->id]);
         try{
             \YiMQ::commit();
@@ -52,11 +52,11 @@ class TransactionMessageTest extends TestCase
     }
 
     public function testMessagePrepareFailedRollback(){
-        \YiMQ::mock()->topic('user.create')->reply(200);
+        \YiMQ::mock()->transaction('user.create')->reply(200);
         \YiMQ::mock()->prepare()->reply(400);
         \YiMQ::mock()->rollback()->reply(200);
 
-        $message = \YiMQ::topic('user.create')->begin();
+        $message = \YiMQ::transaction('user.create')->begin();
         $this->assertDatabaseHas($this->messageTable,['id'=>$message->id]);
         $ecSubtask1 = \YiMQ::ec('content@content.change')->data(['title'=>'new title1'])->run();
         try{
@@ -77,11 +77,11 @@ class TransactionMessageTest extends TestCase
     }
 
     public function testMessageRollback(){
-        \YiMQ::mock()->topic('user.create')->reply(200);
+        \YiMQ::mock()->transaction('user.create')->reply(200);
         \YiMQ::mock()->prepare()->reply(200);
         \YiMQ::mock()->rollback()->reply(200);
 
-        $message = \YiMQ::topic('user.create')->begin();
+        $message = \YiMQ::transaction('user.create')->begin();
         $this->assertDatabaseHas($this->messageTable,['id'=>$message->id]);
         \YiMQ::rollback();
         $this->assertDatabaseHas($this->messageTable,['id'=>$message->id,'status'=>MessageStatus::CANCELED]);
@@ -98,11 +98,11 @@ class TransactionMessageTest extends TestCase
     }
 
     public function testMessageRollbackLocalSuccessRemoteFailed(){
-        \YiMQ::mock()->topic('user.create')->reply(200);
+        \YiMQ::mock()->transaction('user.create')->reply(200);
         \YiMQ::mock()->prepare()->reply(200);
         \YiMQ::mock()->rollback()->reply(400);
 
-        $message = \YiMQ::topic('user.create')->begin();
+        $message = \YiMQ::transaction('user.create')->begin();
         $this->assertDatabaseHas($this->messageTable,['id'=>$message->id]);
         try {
             \YiMQ::rollback();
@@ -121,12 +121,12 @@ class TransactionMessageTest extends TestCase
 
     public function testTrasactionTwiceError()
     {
-        $message = \YiMQ::mock()->topic('user.create')->reply(200);
-        $message = \YiMQ::topic('user.create')->begin();
+        $message = \YiMQ::mock()->transaction('user.create')->reply(200);
+        $message = \YiMQ::transaction('user.create')->begin();
         \YiMQ::mock()->rollback()->reply(200);
         $errorMessage = null;
         try{
-            $message = \YiMQ::topic('user.create')->begin();
+            $message = \YiMQ::transaction('user.create')->begin();
         }catch (\Exception $exception){
             $errorMessage = $exception->getMessage();
             \YiMQ::rollback();
@@ -144,12 +144,12 @@ class TransactionMessageTest extends TestCase
 
     public function testAddTccSubtask()
     {
-        \YiMQ::mock()->topic('user.create')->reply(200);
+        \YiMQ::mock()->transaction('user.create')->reply(200);
         \YiMQ::mock()->tcc('user@user.create')->reply(200,['username'=>'jack']);
         \YiMQ::mock()->prepare()->reply(200);
         \YiMQ::mock()->commit()->reply(200);
 
-        $message = \YiMQ::topic('user.create')->begin();
+        $message = \YiMQ::transaction('user.create')->begin();
         $tccSubtask = \YiMQ::tcc('user@user.create')->data([])->run();
         $this->assertDatabaseHas($this->subtaskTable,['id'=>$tccSubtask->id]);
         \YiMQ::commit();
@@ -166,12 +166,12 @@ class TransactionMessageTest extends TestCase
 
     public function testAddXaSubtask()
     {
-        \YiMQ::mock()->topic('user.create')->reply(200);
+        \YiMQ::mock()->transaction('user.create')->reply(200);
         \YiMQ::mock()->xa('user@user.create')->reply(200,['username'=>'jack']);
         \YiMQ::mock()->prepare()->reply(200);
         \YiMQ::mock()->commit()->reply(200);
 
-        $message = \YiMQ::topic('user.create')->begin();
+        $message = \YiMQ::transaction('user.create')->begin();
         $tccSubtask = \YiMQ::xa('user@user.create')->data([])->run();
         $this->assertDatabaseHas($this->subtaskTable,['id'=>$tccSubtask->id]);
         \YiMQ::commit();
@@ -187,11 +187,11 @@ class TransactionMessageTest extends TestCase
     }
     public function testAddEcSubtaskAndPrepare()
     {
-        \YiMQ::mock()->topic('content.update')->reply(200);
+        \YiMQ::mock()->transaction('content.update')->reply(200);
         \YiMQ::mock()->prepare()->reply(200);
         \YiMQ::mock()->commit()->reply(200);
 
-        $message = \YiMQ::topic('content.update')->begin();
+        $message = \YiMQ::transaction('content.update')->begin();
         $ecSubtask1 = \YiMQ::ec('content@content.change')->data(['title'=>'new title1'])->run();
         $ecSubtask2 = \YiMQ::ec('content@content.change')->data(['title'=>'new title2'])->run();
         \YiMQ::commit();
@@ -209,11 +209,11 @@ class TransactionMessageTest extends TestCase
 
     public function testAddBcstSubtaskAndPrepare()
     {
-        \YiMQ::mock()->topic('content.update')->reply(200);
+        \YiMQ::mock()->transaction('content.update')->reply(200);
         \YiMQ::mock()->prepare()->reply(200);
         \YiMQ::mock()->commit()->reply(200);
 
-        $message = \YiMQ::topic('content.update')->begin();
+        $message = \YiMQ::transaction('content.update')->begin();
         $bcstSubtask = \YiMQ::bcst('content.change')->data(['title'=>'new title1'])->run();
         \YiMQ::commit();
         $this->assertDatabaseHas($this->subtaskTable,['id'=>$bcstSubtask->id]);
@@ -221,12 +221,12 @@ class TransactionMessageTest extends TestCase
     }
 
     public function testRemoteConfimErrorIgnoreExceptions(){
-        \YiMQ::mock()->topic('transaction.test')->reply(200);
+        \YiMQ::mock()->transaction('transaction.test')->reply(200);
         \YiMQ::mock()->prepare()->reply(200);
         \YiMQ::mock()->commit()->reply(500);
         $exception = null;
         try {
-            \YiMQ::topic('transaction.test')->begin();
+            \YiMQ::transaction('transaction.test')->begin();
             \YiMQ::commit();
         }catch (\Exception $e){
             $exception = $e;
@@ -236,14 +236,14 @@ class TransactionMessageTest extends TestCase
     }
 
     public function testRemoteRollbackErrorIgnoreExceptions(){
-        \YiMQ::mock()->topic('transaction.test')->reply(200);
+        \YiMQ::mock()->transaction('transaction.test')->reply(200);
         \YiMQ::mock()->prepare()->reply(200);
         \YiMQ::mock()->commit()->reply(200);
         \YiMQ::mock()->rollback()->reply(500);
         $exception = null;
         try {
             try {
-                \YiMQ::topic('transaction.test')->begin();
+                \YiMQ::transaction('transaction.test')->begin();
                 throw new \Exception('mock exception');
             }catch (\Exception $e){
                 \YiMQ::rollback();
@@ -258,9 +258,10 @@ class TransactionMessageTest extends TestCase
 
     public function testClosureTransaction(){
         $username = "name-".$this->getUserId();
-        \YiMQ::mock()->topic('user.create')->reply(200);
+        \YiMQ::mock()->transaction('user.create')->reply(200);
         \YiMQ::mock()->prepare()->reply(200);
         \YiMQ::mock()->commit()->reply(200);
+
         $userModel = \YiMQ::transaction('user.create',function () use($username){
 
             $ecSubtask1 = \YiMQ::ec('content@user.change')->data(['title'=>'new title1'])->run();
@@ -268,15 +269,17 @@ class TransactionMessageTest extends TestCase
             $userModel->username = $username;
             $userModel->save();
             return $userModel;
-        });
+        })->begin();
+
         $this->assertDatabaseHas($this->userModelTable,['username'=>$username]);
     }
 
     public function testClosureTransactionRollback(){
         $username = "name-".$this->getUserId();
-        \YiMQ::mock()->topic('user.create')->reply(200);
+        \YiMQ::mock()->transaction('user.create')->reply(200);
         \YiMQ::mock()->prepare()->reply(200);
         \YiMQ::mock()->commit()->reply(200);
+        $exception = null;
         try{
             $userModel = \YiMQ::transaction('user.create',function () use($username){
 
@@ -286,11 +289,11 @@ class TransactionMessageTest extends TestCase
                 $userModel->save();
                 throw new \Exception('test');
                 return $userModel;
-            });
+            })->begin();
         }catch (\Exception $e){
-
+            $exception = $e;
         }
-
+        $this->assertNotNull($exception);
         $this->assertDatabaseMissing($this->userModelTable,['username'=>$username]);
     }
 

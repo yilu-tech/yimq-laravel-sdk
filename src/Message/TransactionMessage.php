@@ -9,13 +9,36 @@ use YiluTech\YiMQ\Constants\MessageStatus;
 use YiluTech\YiMQ\Constants\MessageType;
 use YiluTech\YiMQ\Constants\TransactionMessageAction;
 use YiluTech\YiMQ\Models\Message As MessageModel;
+use YiluTech\YiMQ\YiMqClient;
 
 class TransactionMessage extends Message
 {
     public $tccSubtasks = [];
     public $prepareSubtasks = [];
     public $prepared = false;
-    public function begin():TransactionMessage
+    public $callback = null;
+    public function __construct(YiMqClient $client, $topic,$callback)
+    {
+        parent::__construct($client, $topic);
+        $this->callback = $callback;
+    }
+
+    public function begin(){
+        if(is_null($this->callback)){
+            return $this->_begin();
+        }
+        $this->_begin();
+        try {
+            $result = call_user_func($this->callback);
+            $this->commit();
+            return $result;
+        }catch (\Exception $e){
+            $this->rollback();
+            throw $e;
+        };
+    }
+
+    private function _begin():TransactionMessage
     {
         if( $this->client->hasTransactionMessage()){
             throw new \Exception("MicroApi transaction message already exists.");
