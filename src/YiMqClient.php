@@ -89,6 +89,20 @@ class YiMqClient
         return $this->getTransactionMessage()->rollback();
     }
 
+    public function transaction($topic,$callback){
+
+        \YiMQ::topic($topic)->begin();
+        try {
+            $result = $callback();
+            \YiMQ::commit();
+            return $result;
+        }catch (\Exception $e){
+            \YiMQ::rollback();
+            throw $e;
+        };
+
+    }
+
 
     public function ec(String $processor): EcSubtask
     {

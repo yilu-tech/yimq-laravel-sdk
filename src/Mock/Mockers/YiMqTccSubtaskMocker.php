@@ -47,9 +47,9 @@ class YiMqTccSubtaskMocker extends YiMqMocker
                     'status' => 'PREPARED'
                 ];
             case 400:
-                throw new YiMqHttpRequestException('YiMq server 400 error.');
+                throw new YiMqHttpRequestException('YiMQ server 400 error.');
             case 500;
-                throw new YiMqHttpRequestException('YiMq server 500 error.');
+                throw new YiMqHttpRequestException('YiMQ server 500 error.');
         }
     }
 }

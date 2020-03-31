@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use Tests\App\Models\UserModel;
 use Tests\TestCase;
 use YiluTech\YiMQ\Constants\MessageStatus;
 
@@ -253,6 +254,46 @@ class TransactionMessageTest extends TestCase
         }
         $this->assertNull($exception);
     }
+
+
+    public function testClosureTransaction(){
+        $username = "name-".$this->getUserId();
+        \YiMQ::mock()->topic('user.create')->reply(200);
+        \YiMQ::mock()->prepare()->reply(200);
+        \YiMQ::mock()->commit()->reply(200);
+        $userModel = \YiMQ::transaction('user.create',function () use($username){
+
+            $ecSubtask1 = \YiMQ::ec('content@user.change')->data(['title'=>'new title1'])->run();
+            $userModel = new UserModel();
+            $userModel->username = $username;
+            $userModel->save();
+            return $userModel;
+        });
+        $this->assertDatabaseHas($this->userModelTable,['username'=>$username]);
+    }
+
+    public function testClosureTransactionRollback(){
+        $username = "name-".$this->getUserId();
+        \YiMQ::mock()->topic('user.create')->reply(200);
+        \YiMQ::mock()->prepare()->reply(200);
+        \YiMQ::mock()->commit()->reply(200);
+        try{
+            $userModel = \YiMQ::transaction('user.create',function () use($username){
+
+                $ecSubtask1 = \YiMQ::ec('content@user.change')->data(['title'=>'new title1'])->run();
+                $userModel = new UserModel();
+                $userModel->username = $username;
+                $userModel->save();
+                throw new \Exception('test');
+                return $userModel;
+            });
+        }catch (\Exception $e){
+
+        }
+
+        $this->assertDatabaseMissing($this->userModelTable,['username'=>$username]);
+    }
+
 
 
 

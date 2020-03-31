@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \YiluTech\YiMQ\YiMqManager  client(string $name)
  * @method static \YiluTech\YiMQ\Mock\YiMqMockerBuilder  mock()
  * @method static \YiluTech\YiMQ\Message\TransactionMessage  topic(string $topic)
+ * @method static \YiluTech\YiMQ\Message\TransactionMessage  transaction(string $topic,$callback)
  * @method static \YiluTech\YiMQ\Message\TransactionMessage  commit()
  * @method static \YiluTech\YiMQ\Message\TransactionMessage  rollback()
  * @method static \YiluTech\YiMQ\Subtask\TccSubtask  tcc(string $processor)
