@@ -83,7 +83,7 @@ class RealEnvMessageTest extends TestCase
         }catch (YiMqHttpRequestException $e){
             $errorMsg = $e->getMessage();
         }
-        $this->assertEquals($errorMsg,'Mock: YiMq server 400 error.');
+        $this->assertNull($errorMsg);
 
         //暂停等待message超时确认message状态后去confirm
         sleep(3);
@@ -126,7 +126,7 @@ class RealEnvMessageTest extends TestCase
         }catch (\Exception $e){
             $errorMsg = $e->getMessage();
         }
-        $this->assertEquals($errorMsg,'Mock: YiMq server 500 error.');
+        $this->assertNull($errorMsg);
 
         //通过插入数据确定username的行锁已经释放
         UserModel::create(['username'=>$tccData['username']]);

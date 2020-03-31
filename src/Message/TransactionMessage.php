@@ -105,9 +105,13 @@ class TransactionMessage extends Message
 
         $this->prepare();
         $this->localCommmit();
+        //本地commit后，如果远程commit错误，忽略错误,让服务端回查来状态来确认
+        try {
+            $this->remoteCommit();
+        }catch (\Exception $e){
+            \Log::error($e);
+        }
 
-
-        $this->remoteCommit();
 
         return $this;
     }
@@ -129,10 +133,15 @@ class TransactionMessage extends Message
 
     public function rollback(){
         \DB::rollBack();
-        //TODO::添加一个mock锚点，测试rollback后修改message状态失败
-        $this->model->status = MessageStatus::CANCELED;
-        $this->model->save();
-        $this->remoteRollback();
+        //本地rollback后，如果远程commit错误，忽略错误,让服务端回查来状态来确认
+        try {
+            //TODO::添加一个mock锚点，测试rollback后修改message状态失败
+            $this->model->status = MessageStatus::CANCELED;
+            $this->model->save();
+            $this->remoteRollback();
+        }catch (\Exception $e){
+            \Log::error($e);
+        }
 
         return $this;
     }

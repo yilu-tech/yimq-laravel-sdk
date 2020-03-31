@@ -219,4 +219,41 @@ class TransactionMessageTest extends TestCase
 
     }
 
+    public function testRemoteConfimErrorIgnoreExceptions(){
+        \YiMQ::mock()->topic('transaction.test')->reply(200);
+        \YiMQ::mock()->prepare()->reply(200);
+        \YiMQ::mock()->commit()->reply(500);
+        $exception = null;
+        try {
+            \YiMQ::topic('transaction.test')->begin();
+            \YiMQ::commit();
+        }catch (\Exception $e){
+            $exception = $e;
+            \YiMQ::rollback();
+        }
+        $this->assertNull($exception);
+    }
+
+    public function testRemoteRollbackErrorIgnoreExceptions(){
+        \YiMQ::mock()->topic('transaction.test')->reply(200);
+        \YiMQ::mock()->prepare()->reply(200);
+        \YiMQ::mock()->commit()->reply(200);
+        \YiMQ::mock()->rollback()->reply(500);
+        $exception = null;
+        try {
+            try {
+                \YiMQ::topic('transaction.test')->begin();
+                throw new \Exception('mock exception');
+            }catch (\Exception $e){
+                \YiMQ::rollback();
+            }
+
+        }catch (\Exception $e){
+            $exception = $e;
+        }
+        $this->assertNull($exception);
+    }
+
+
+
 }
