@@ -58,7 +58,7 @@ class TransactionMessageTest extends TestCase
 
         $message = \YiMQ::transaction('user.create')->begin();
         $this->assertDatabaseHas($this->messageTable,['id'=>$message->id]);
-        $ecSubtask1 = \YiMQ::ec('content@content.change')->data(['title'=>'new title1'])->run();
+        $ecSubtask1 = \YiMQ::ec('content@content.change')->data(['title'=>'new title1'])->join();
         try{
             \YiMQ::commit();
         }catch(\Exception $exeption){
@@ -150,7 +150,7 @@ class TransactionMessageTest extends TestCase
         \YiMQ::mock()->commit()->reply(200);
 
         $message = \YiMQ::transaction('user.create')->begin();
-        $tccSubtask = \YiMQ::tcc('user@user.create')->data([])->run();
+        $tccSubtask = \YiMQ::tcc('user@user.create')->data([])->try();
         $this->assertDatabaseHas($this->subtaskTable,['id'=>$tccSubtask->id]);
         \YiMQ::commit();
 
@@ -172,7 +172,7 @@ class TransactionMessageTest extends TestCase
         \YiMQ::mock()->commit()->reply(200);
 
         $message = \YiMQ::transaction('user.create')->begin();
-        $tccSubtask = \YiMQ::xa('user@user.create')->data([])->run();
+        $tccSubtask = \YiMQ::xa('user@user.create')->data([])->prepare();
         $this->assertDatabaseHas($this->subtaskTable,['id'=>$tccSubtask->id]);
         \YiMQ::commit();
 
@@ -192,8 +192,8 @@ class TransactionMessageTest extends TestCase
         \YiMQ::mock()->commit()->reply(200);
 
         $message = \YiMQ::transaction('content.update')->begin();
-        $ecSubtask1 = \YiMQ::ec('content@content.change')->data(['title'=>'new title1'])->run();
-        $ecSubtask2 = \YiMQ::ec('content@content.change')->data(['title'=>'new title2'])->run();
+        $ecSubtask1 = \YiMQ::ec('content@content.change')->data(['title'=>'new title1'])->join();
+        $ecSubtask2 = \YiMQ::ec('content@content.change')->data(['title'=>'new title2'])->join();
         \YiMQ::commit();
         $this->assertDatabaseHas($this->subtaskTable,['id'=>$ecSubtask1->id]);
         $this->assertDatabaseHas($this->subtaskTable,['id'=>$ecSubtask2->id]);
@@ -214,7 +214,7 @@ class TransactionMessageTest extends TestCase
         \YiMQ::mock()->commit()->reply(200);
 
         $message = \YiMQ::transaction('content.update')->begin();
-        $bcstSubtask = \YiMQ::bcst('content.change')->data(['title'=>'new title1'])->run();
+        $bcstSubtask = \YiMQ::bcst('content.change')->data(['title'=>'new title1'])->join();
         \YiMQ::commit();
         $this->assertDatabaseHas($this->subtaskTable,['id'=>$bcstSubtask->id]);
 
@@ -264,7 +264,7 @@ class TransactionMessageTest extends TestCase
 
         $userModel = \YiMQ::transaction('user.create',function () use($username){
 
-            $ecSubtask1 = \YiMQ::ec('content@user.change')->data(['title'=>'new title1'])->run();
+            $ecSubtask1 = \YiMQ::ec('content@user.change')->data(['title'=>'new title1'])->join();
             $userModel = new UserModel();
             $userModel->username = $username;
             $userModel->save();
@@ -283,7 +283,7 @@ class TransactionMessageTest extends TestCase
         try{
             $userModel = \YiMQ::transaction('user.create',function () use($username){
 
-                $ecSubtask1 = \YiMQ::ec('content@user.change')->data(['title'=>'new title1'])->run();
+                $ecSubtask1 = \YiMQ::ec('content@user.change')->data(['title'=>'new title1'])->join();
                 $userModel = new UserModel();
                 $userModel->username = $username;
                 $userModel->save();

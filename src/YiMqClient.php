@@ -61,7 +61,7 @@ class YiMqClient
         return new TccSubtask($this,$this->getTransactionMessage(),$processor);
     }
 
-    public function xa(String $processor): TccSubtask
+    public function xa(String $processor): XaSubtask
     {
         if(!$this->hasTransactionMessage()){
             throw new \Exception('Not begin a yimq transaction');

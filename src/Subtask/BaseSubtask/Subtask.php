@@ -1,7 +1,7 @@
 <?php
 
 
-namespace YiluTech\YiMQ\Subtask;
+namespace YiluTech\YiMQ\Subtask\BaseSubtask;
 
 
 use YiluTech\YiMQ\Message\TransactionMessage;
@@ -26,7 +26,11 @@ abstract class Subtask
         $this->message = $message;
     }
 
-    public function data($data):Subtask
+    /**
+     * @param $data
+     * @return $this
+     */
+    public function data($data)
     {
         $this->data = $data;
         return $this;
@@ -34,6 +38,6 @@ abstract class Subtask
     public function getData(){
         return $this->data;
     }
-    abstract public function run();
-    abstract public function getContext();
+//    abstract public function run();
+//    abstract public function getContext();
 }

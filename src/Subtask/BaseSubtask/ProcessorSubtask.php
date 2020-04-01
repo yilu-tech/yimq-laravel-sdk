@@ -1,7 +1,7 @@
 <?php
 
 
-namespace YiluTech\YiMQ\Subtask;
+namespace YiluTech\YiMQ\Subtask\BaseSubtask;
 
 
 use YiluTech\YiMQ\Message\TransactionMessage;
@@ -18,7 +18,5 @@ abstract class ProcessorSubtask extends Subtask
     {
         parent::__construct($client, $message);
         $this->processor = $processor;
-
-
     }
 }

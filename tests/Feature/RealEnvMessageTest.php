@@ -22,7 +22,7 @@ class RealEnvMessageTest extends TestCase
         $this->assertDatabaseHas($this->messageTable,['id'=>$message->id]);
 
 
-        $ecSubtask = \YiMQ::ec('user@user.update')->data($ecData)->run();
+        $ecSubtask = \YiMQ::ec('user@user.update')->data($ecData)->join();
         \YiMQ::commit();
         $this->assertDatabaseHas($this->messageTable,['id'=>$message->id,'status'=>MessageStatus::DONE]);
         sleep(1);
@@ -40,7 +40,7 @@ class RealEnvMessageTest extends TestCase
 
         $ecData['id'] = $userModel->id;
         $ecData['username'] = $userModel->username.'.change';
-        $ecSubtask = \YiMQ::ec('user@user.update')->data($ecData)->run();
+        $ecSubtask = \YiMQ::ec('user@user.update')->data($ecData)->join();
 
         \YiMQ::rollback();
         $this->assertDatabaseHas($this->messageTable,['id'=>$message->id,'status'=>MessageStatus::CANCELED]);
@@ -53,7 +53,7 @@ class RealEnvMessageTest extends TestCase
         $message = \YiMQ::transaction('user.create')->delay(10*1000)->begin();
 
 
-        $tccSubtask = \YiMQ::xa('user@user.create')->data($tccData)->run();
+        $tccSubtask = \YiMQ::xa('user@user.create')->data($tccData)->prepare();
         $this->assertDatabaseHas($this->subtaskTable,['id'=>$tccSubtask->id]);
         //通过行锁确定是否在processor中产生数据
         try {
@@ -75,7 +75,7 @@ class RealEnvMessageTest extends TestCase
         \YiMQ::mock()->commit()->reply(400);
 
         $message = \YiMQ::transaction('user.create')->delay(1*1000)->data([])->begin();
-        $tccSubtask = \YiMQ::xa('user@user.create')->data($tccData)->run();
+        $tccSubtask = \YiMQ::xa('user@user.create')->data($tccData)->prepare();
         $this->assertDatabaseHas($this->subtaskTable,['id'=>$tccSubtask->id]);
         $errorMsg = null;
         try {
@@ -96,7 +96,7 @@ class RealEnvMessageTest extends TestCase
         $message = \YiMQ::transaction('user.create')->delay(10*1000)->begin();
 
         $tccData['username'] = "name-".$this->getMessageId();
-        $tccSubtask = \YiMQ::xa('user@user.create')->data($tccData)->run();
+        $tccSubtask = \YiMQ::xa('user@user.create')->data($tccData)->prepare();
         $this->assertDatabaseHas($this->subtaskTable,['id'=>$tccSubtask->id]);
 
         //通过行锁确定是否在processor中产生数据
@@ -117,7 +117,7 @@ class RealEnvMessageTest extends TestCase
         $message = \YiMQ::transaction('user.create')->delay(2*1000)->data([])->begin();
 
         $tccData['username'] = "name-".$this->getMessageId();
-        $tccSubtask = \YiMQ::xa('user@user.create')->data($tccData)->run();
+        $tccSubtask = \YiMQ::xa('user@user.create')->data($tccData)->prepare();
         $this->assertDatabaseHas($this->subtaskTable,['id'=>$tccSubtask->id]);
 
         $errorMsg = null;
@@ -149,10 +149,10 @@ class RealEnvMessageTest extends TestCase
 
 
         $message = \YiMQ::transaction('user.create')->delay(10*1000)->begin();
-        $tccSubtask1 = \YiMQ::xa('user@user.create')->data($tccData1)->run();
+        $tccSubtask1 = \YiMQ::xa('user@user.create')->data($tccData1)->prepare();
 
         try{
-            $tccSubtask2 = \YiMQ::xa('user@user.create')->data($tccData2)-> run();
+            $tccSubtask2 = \YiMQ::xa('user@user.create')->data($tccData2)-> prepare();
         }catch (\Exception $e){
             \YiMQ::rollback();
         }
@@ -173,10 +173,10 @@ class RealEnvMessageTest extends TestCase
 
 
         $message = \YiMQ::transaction('user.create')->delay(1*1000)->begin();
-        $tccSubtask1 = \YiMQ::xa('user@user.create')->data($tccData1)->run();
+        $tccSubtask1 = \YiMQ::xa('user@user.create')->data($tccData1)->prepare();
 
         try{
-            $tccSubtask2 = \YiMQ::xa('user@user.create')->data($tccData2)-> run();
+            $tccSubtask2 = \YiMQ::xa('user@user.create')->data($tccData2)->prepare();
         }catch (\Exception $e){
             \DB::reconnect();//释放锁
             sleep(3);

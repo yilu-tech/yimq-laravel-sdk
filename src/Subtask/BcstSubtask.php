@@ -7,6 +7,7 @@ use YiluTech\YiMQ\Constants\SubtaskStatus;
 use YiluTech\YiMQ\Constants\SubtaskType;
 use YiluTech\YiMQ\Message\TransactionMessage;
 use YiluTech\YiMQ\Models\Subtask as SubtaskModel;
+use YiluTech\YiMQ\Subtask\BaseSubtask\Subtask;
 use YiluTech\YiMQ\YiMqClient;
 
 class BcstSubtask extends Subtask
@@ -21,7 +22,7 @@ class BcstSubtask extends Subtask
         $this->topic = $topic;
     }
 
-    public function run()
+    public function join()
     {
         $this->message->addEcSubtask($this);
         return $this;

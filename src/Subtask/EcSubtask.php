@@ -6,13 +6,14 @@ namespace YiluTech\YiMQ\Subtask;
 use YiluTech\YiMQ\Constants\SubtaskStatus;
 use YiluTech\YiMQ\Constants\SubtaskType;
 use YiluTech\YiMQ\Models\Subtask as SubtaskModel;
+use YiluTech\YiMQ\Subtask\BaseSubtask\ProcessorSubtask;
 
 class EcSubtask extends ProcessorSubtask
 {
     public $serverType = "EC";
     public $type = SubtaskType::EC;
 
-    public function run()
+    public function join()
     {
         $this->message->addEcSubtask($this);
         return $this;
