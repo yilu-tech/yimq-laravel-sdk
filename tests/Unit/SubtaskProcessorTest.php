@@ -318,7 +318,7 @@ class SubtaskProcessorTest extends TestCase
         $userModel = $this->createMockUser();
         $data['action'] = 'CONFIRM';
         $data['context'] = [
-            'type' => 'BCST',
+            'type' => 'LSTR',
             'processor' => \Tests\Services\UserUpdateListener::class,
             'topic'=>'user@user.update',
             'id' => $id,

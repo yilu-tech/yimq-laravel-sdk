@@ -21,4 +21,10 @@ class UserCreate extends XaProcessor
         }
         return $userModel->toArray();
     }
+
+    protected function validate($validator)
+    {
+        $validator([]);
+        // TODO: Implement validate() method.
+    }
 }

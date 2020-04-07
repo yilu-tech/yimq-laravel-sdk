@@ -3,6 +3,7 @@
 
 namespace YiluTech\YiMQ\Subtask;
 
+use YiluTech\YiMQ\Constants\SubtaskServerType;
 use YiluTech\YiMQ\Constants\SubtaskStatus;
 use YiluTech\YiMQ\Constants\SubtaskType;
 use YiluTech\YiMQ\Message\TransactionMessage;
@@ -12,7 +13,7 @@ use YiluTech\YiMQ\YiMqClient;
 
 class BcstSubtask extends Subtask
 {
-    public $serverType = "BCST";
+    public $serverType = SubtaskServerType::BCST;
     public $type = SubtaskType::BCST;
     public $topic;
 

@@ -43,4 +43,9 @@ class UserTccCreate extends TccProcessor
         $userModel = UserModel::find($id);
         $userModel->delete();
     }
+
+    protected function validate($validator)
+    {
+        $validator([]);
+    }
 }

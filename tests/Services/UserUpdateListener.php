@@ -5,11 +5,11 @@ namespace Tests\Services;
 
 
 use Tests\App\Models\UserModel;
-use YiluTech\YiMQ\Processor\BcstProcessor;
 use YiluTech\YiMQ\Processor\EcProcessor;
+use YiluTech\YiMQ\Processor\LstrProcessor;
 use YiluTech\YiMQ\Processor\XaProcessor;
 
-class UserUpdateListener extends BcstProcessor
+class UserUpdateListener extends LstrProcessor
 {
 
 
@@ -21,6 +21,12 @@ class UserUpdateListener extends BcstProcessor
 EOT;
     }
 
+    function validate($validator)
+    {
+        $validator([
+            'id' => 'required',
+        ]);
+    }
 
     protected function do()
     {
@@ -28,4 +34,5 @@ EOT;
         $userModel->username = $this->data['username'];
         $userModel->save();
     }
+
 }

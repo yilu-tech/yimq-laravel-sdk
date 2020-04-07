@@ -8,11 +8,11 @@ use YiluTech\YiMQ\Constants\SubtaskStatus;
 use YiluTech\YiMQ\Constants\SubtaskType;
 use YiluTech\YiMQ\Models\ProcessModel;
 
-abstract class BcstProcessor extends EcProcessor
+abstract class LstrProcessor extends EcProcessor
 {
 
-    public $serverType = 'BCST';
-    public $type = SubtaskType::BCST;
+    public $serverType = 'LSTR';
+    public $type = SubtaskType::LSTR;
 
     public function getCondition(){
         return null;

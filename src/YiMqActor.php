@@ -67,7 +67,7 @@ class YiMqActor
     private function getProcessor($context){
 
 
-        if($context['type'] == SubtaskServerType::BCST){
+        if($context['type'] == SubtaskServerType::LSTR){
             $processor = $context['processor'];
             if(!isset($this->listenersMap[$processor])){
                 throw new YiMqSystemException("Processor <$processor> not exists");

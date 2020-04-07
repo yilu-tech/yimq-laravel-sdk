@@ -18,4 +18,9 @@ class UserUpdate extends EcProcessor
         $userModel->username = $this->data['username'];
         $userModel->save();
     }
+
+    protected function validate($validator)
+    {
+        $validator([]);
+    }
 }

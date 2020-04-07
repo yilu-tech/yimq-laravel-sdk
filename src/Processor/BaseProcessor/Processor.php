@@ -17,6 +17,7 @@ abstract class Processor
     public $type;
     public $serverType;
     public $context;
+    private $_validator;
     protected $statusMap = [
         SubtaskStatus::PREPARING => 'PREPARING',
         SubtaskStatus::PREPARED => 'PREPARED',
@@ -45,6 +46,14 @@ abstract class Processor
             throw new YiMqSystemException("ProcessorSubtask $this->id not exists");
         }
     }
+    protected function _runValidate(){
+        $this->validate(function ($rules){
+            $this->_validator = \Validator::make($this->data, $rules);
+            return $this->_validator;
+        });
+        $this->_validator->validate();
+    }
+    protected abstract function validate($validator);
 
     protected function createProcess($status){
         $subtaskModel = new ProcessModel();
@@ -73,6 +82,7 @@ abstract class Processor
         return $this->_runConfirm($context);
     }
     abstract function _runConfirm($context);
+
 
     public function getOptions(){
         return [];

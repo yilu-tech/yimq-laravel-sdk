@@ -6,9 +6,11 @@ namespace YiluTech\YiMQ\Constants;
 
 class SubtaskType
 {
-    CONST EC = 10;
-    CONST TCC = 20;
-    CONST XA = 30;
-    CONST BCST = 60;
+    CONST LSTR = 10;
+    CONST EC = 20;
+    CONST TCC = 30;
+    CONST XA = 40;
+    const BCST = 50;
+
 
 }
