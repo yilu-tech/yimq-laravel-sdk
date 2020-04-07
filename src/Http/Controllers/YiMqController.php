@@ -22,7 +22,7 @@ class YiMqController
                 return $yiMqActor->cancel($context);
             case 'MESSAGE_CHECK':
                 return $yiMqActor->messageCheck($context);
-            case 'config':
+            case 'GET_CONFIG':
                 return $yiMqActorConfig->get();
             default:
                 throw new \Exception("Action <$action> not exists.");

@@ -28,6 +28,7 @@ class YiMqActorConfig
         }
 
         return [
+            'actor_name' => config('yimq.actor_name'),
             'processors' => $this->processors,
             'broadcast_listeners' => $this->broadcastListeners
         ];
