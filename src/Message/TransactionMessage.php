@@ -66,6 +66,7 @@ class TransactionMessage extends Message
         $context = [
             'topic' => $this->getTopic(),
             'type' => MessageServerType::TRANSACTION,
+            'data' => $this->data,
             'delay' => $this->delay
         ];
         $mockConditions['action'] = TransactionMessageAction::BEGIN;
