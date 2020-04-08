@@ -4,6 +4,8 @@
 namespace YiluTech\YiMQ\Services;
 
 
+use YiluTech\YiMQ\Exceptions\YiMqSystemException;
+
 class YiMqActorConfig
 {
     protected $processors = [];
@@ -11,6 +13,9 @@ class YiMqActorConfig
     protected $broadcastListeners = [];
     protected $schedules = [];
     function get(){
+        if(!is_array(config('yimq.processors'))){
+            throw new YiMqSystemException('yimq config processors define error.');
+        }
         foreach (config('yimq.processors') as $alias => $processorClass){
             $processorObject = resolve($processorClass);
             $item = $processorObject->getOptions();
@@ -18,8 +23,10 @@ class YiMqActorConfig
             array_push($this->processors,$item);
         }
 
-
-        foreach (config('yimq.broadcast_listeners') as $class => $topic){
+        if(!is_array(config('yimq.broadcast_listeners'))){
+            throw new YiMqSystemException('yimq config broadcast_listeners define error.');
+        }
+        foreach (config('yimq.broadcast_listeners',[]) as $class => $topic){
             $listenerObject =  resolve($class);
             $item['processor'] = $class;
             $item['topic'] = $topic;
