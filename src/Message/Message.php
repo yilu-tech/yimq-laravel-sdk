@@ -14,6 +14,7 @@ abstract class Message
     public $topic;
     public  $model;
     public $id;
+    public $local_id;
     public $mockManager;
     public $delay = 2000;
     public $data;

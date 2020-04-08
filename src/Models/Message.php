@@ -13,8 +13,13 @@ class Message extends Model
     protected $table = 'yimq_messages';
     protected $fillable = [
         'id',
+        'message_id',
         'topic',
         'type',
+        'data',
         'status',
+    ];
+    protected $casts = [
+        'data' => 'json'
     ];
 }

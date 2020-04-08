@@ -21,7 +21,7 @@ class EcSubtask extends ProcessorSubtask
 
     public function save(){
         $this->model = new SubtaskModel();
-        $this->model->id = $this->id;
+        $this->model->subtask_id = $this->id;
         $this->model->message_id = $this->message->id;
         $this->model->status = SubtaskStatus::PREPARED;
         $this->model->type = $this->type;

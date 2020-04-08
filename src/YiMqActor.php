@@ -45,7 +45,7 @@ class YiMqActor
 
     public function messageCheck($context){
         \Log::debug($context);
-        $messageModel = MessageModel::lockForUpdate()->find($context['message_id']);
+        $messageModel = MessageModel::lockForUpdate()->where('message_id',$context['message_id'])->first();
         if(!isset($messageModel)){
             throw new YiMqSystemException('Message not exists.');
         }

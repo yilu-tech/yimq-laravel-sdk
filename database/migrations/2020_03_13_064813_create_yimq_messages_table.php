@@ -14,9 +14,11 @@ class CreateYimqMessagesTable extends Migration
     public function up()
     {
         Schema::create('yimq_messages', function (Blueprint $table) {
-            $table->unsignedInteger('id')->primary();
+            $table->increments('id');
+            $table->unsignedInteger('message_id')->unique();
             $table->string('topic',50)->nullable(false);
             $table->unsignedTinyInteger('type')->nullable(false);
+            $table->json('data')->nullable();
             $table->tinyInteger('status')->nullable(false);
             $table->timestamps();
         });

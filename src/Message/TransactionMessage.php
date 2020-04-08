@@ -58,7 +58,8 @@ class TransactionMessage extends Message
         //3. 开启事务
         \DB::beginTransaction();
         //4: 锁定message
-        $this->model = MessageModel::lockForUpdate()->find($this->id);
+        $this->model = MessageModel::lockForUpdate()->where('message_id',$this->id)->first();
+        $this->local_id = $this->model->id;
     }
 
 
@@ -77,11 +78,11 @@ class TransactionMessage extends Message
         }
 
     }
-    private function createLocalTransactionRecord($messageInfo){
-        \Log::debug('TransactionMessage ['.$this->client->serviceName.'] -向本地数据库记录事物 '. $messageInfo['id']);
+    private function createLocalTransactionRecord(){
+        \Log::debug('TransactionMessage ['.$this->client->serviceName.'] -向本地数据库记录事物 '. $this->id);
 
         $messageModel = new MessageModel();
-        $messageModel->id = $messageInfo['id'];
+        $messageModel->message_id = $this->id;
         $messageModel->status = MessageStatus::PENDING;
         $messageModel->type = MessageType::TRANSACTION;
         $messageModel->topic = $this->topic;

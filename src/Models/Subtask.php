@@ -11,6 +11,7 @@ class Subtask extends Model
     protected $table = 'yimq_subtasks';
     protected $fillable = [
         'id',
+        'subtask_id',
         'message_id',
         'type',
         'data',

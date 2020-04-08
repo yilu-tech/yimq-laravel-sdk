@@ -16,9 +16,9 @@ class TransactionMessageTest extends TestCase
         \YiMQ::mock()->commit()->reply(200);
 
         $message = \YiMQ::transaction('user.create')->begin();
-        $this->assertDatabaseHas($this->messageTable,['id'=>$message->id]);
+        $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id]);
         \YiMQ::commit();
-        $this->assertDatabaseHas($this->messageTable,['id'=>$message->id,'status'=>MessageStatus::DONE]);
+        $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id,'status'=>MessageStatus::DONE]);
 
         $data['action'] = 'MESSAGE_CHECK';
         $data['context'] = [
@@ -35,11 +35,11 @@ class TransactionMessageTest extends TestCase
         \YiMQ::mock()->commit()->reply(400);
 
         $message = \YiMQ::transaction('user.create')->begin();
-        $this->assertDatabaseHas($this->messageTable,['id'=>$message->id]);
+        $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id]);
         try{
             \YiMQ::commit();
         }catch(\Exception $exeption){
-            $this->assertDatabaseHas($this->messageTable,['id'=>$message->id,'status'=>MessageStatus::DONE]);
+            $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id,'status'=>MessageStatus::DONE]);
         }
 
         $data['action'] = 'MESSAGE_CHECK';
@@ -57,15 +57,15 @@ class TransactionMessageTest extends TestCase
         \YiMQ::mock()->rollback()->reply(200);
 
         $message = \YiMQ::transaction('user.create')->begin();
-        $this->assertDatabaseHas($this->messageTable,['id'=>$message->id]);
+        $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id]);
         $ecSubtask1 = \YiMQ::ec('content@content.change')->data(['title'=>'new title1'])->join();
         try{
             \YiMQ::commit();
         }catch(\Exception $exeption){
-            $this->assertDatabaseHas($this->messageTable,['id'=>$message->id,'status'=>MessageStatus::PENDING]);
+            $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id,'status'=>MessageStatus::PENDING]);
             \YiMQ::rollback();
         }
-        $this->assertDatabaseHas($this->messageTable,['id'=>$message->id,'status'=>MessageStatus::CANCELED]);
+        $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id,'status'=>MessageStatus::CANCELED]);
 
         $data['action'] = 'MESSAGE_CHECK';
         $data['context'] = [
@@ -82,9 +82,9 @@ class TransactionMessageTest extends TestCase
         \YiMQ::mock()->rollback()->reply(200);
 
         $message = \YiMQ::transaction('user.create')->begin();
-        $this->assertDatabaseHas($this->messageTable,['id'=>$message->id]);
+        $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id]);
         \YiMQ::rollback();
-        $this->assertDatabaseHas($this->messageTable,['id'=>$message->id,'status'=>MessageStatus::CANCELED]);
+        $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id,'status'=>MessageStatus::CANCELED]);
 
         $data['action'] = 'MESSAGE_CHECK';
         $data['context'] = [
@@ -103,11 +103,11 @@ class TransactionMessageTest extends TestCase
         \YiMQ::mock()->rollback()->reply(400);
 
         $message = \YiMQ::transaction('user.create')->begin();
-        $this->assertDatabaseHas($this->messageTable,['id'=>$message->id]);
+        $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id]);
         try {
             \YiMQ::rollback();
         }catch (\Exception $exception){
-            $this->assertDatabaseHas($this->messageTable,['id'=>$message->id,'status'=>MessageStatus::CANCELED]);
+            $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id,'status'=>MessageStatus::CANCELED]);
         }
 
         $data['action'] = 'MESSAGE_CHECK';
@@ -151,7 +151,7 @@ class TransactionMessageTest extends TestCase
 
         $message = \YiMQ::transaction('user.create')->begin();
         $tccSubtask = \YiMQ::tcc('user@user.create')->data([])->try();
-        $this->assertDatabaseHas($this->subtaskTable,['id'=>$tccSubtask->id]);
+        $this->assertDatabaseHas($this->subtaskTable,['message_id'=>$tccSubtask->id]);
         \YiMQ::commit();
 
         $data['action'] = 'MESSAGE_CHECK';
@@ -173,7 +173,7 @@ class TransactionMessageTest extends TestCase
 
         $message = \YiMQ::transaction('user.create')->begin();
         $tccSubtask = \YiMQ::xa('user@user.create')->data([])->prepare();
-        $this->assertDatabaseHas($this->subtaskTable,['id'=>$tccSubtask->id]);
+        $this->assertDatabaseHas($this->subtaskTable,['message_id'=>$tccSubtask->id]);
         \YiMQ::commit();
 
         $data['action'] = 'MESSAGE_CHECK';
@@ -195,8 +195,8 @@ class TransactionMessageTest extends TestCase
         $ecSubtask1 = \YiMQ::ec('content@content.change')->data(['title'=>'new title1'])->join();
         $ecSubtask2 = \YiMQ::ec('content@content.change')->data(['title'=>'new title2'])->join();
         \YiMQ::commit();
-        $this->assertDatabaseHas($this->subtaskTable,['id'=>$ecSubtask1->id]);
-        $this->assertDatabaseHas($this->subtaskTable,['id'=>$ecSubtask2->id]);
+        $this->assertDatabaseHas($this->subtaskTable,['subtask_id'=>$ecSubtask1->id]);
+        $this->assertDatabaseHas($this->subtaskTable,['subtask_id'=>$ecSubtask2->id]);
 
         $data['action'] = 'MESSAGE_CHECK';
         $data['context'] = [
@@ -216,7 +216,7 @@ class TransactionMessageTest extends TestCase
         $message = \YiMQ::transaction('content.update')->begin();
         $bcstSubtask = \YiMQ::bcst('content.change')->data(['title'=>'new title1'])->join();
         \YiMQ::commit();
-        $this->assertDatabaseHas($this->subtaskTable,['id'=>$bcstSubtask->id]);
+        $this->assertDatabaseHas($this->subtaskTable,['subtask_id'=>$bcstSubtask->id]);
 
     }
 
