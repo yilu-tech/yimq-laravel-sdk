@@ -14,7 +14,7 @@ class CreateYimqSubtasksTable extends Migration
     public function up()
     {
         Schema::create('yimq_subtasks', function (Blueprint $table) {
-            $table->increments('id');
+            $table->bigIncrements('id');
             $table->unsignedInteger('subtask_id')->unique();
             $table->unsignedInteger('message_id');
             $table->unsignedTinyInteger('type')->nullable(false);
