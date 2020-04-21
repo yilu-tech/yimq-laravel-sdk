@@ -312,6 +312,63 @@ class SubtaskProcessorTest extends TestCase
         $this->assertDatabaseHas($this->processModelTable,['id'=>$id,'status'=>SubtaskStatus::DOING]);
     }
 
+    public function testEcManualCommitSuccess()
+    {
+        $id = $this->getProcessId();
+        \YiMQ::mock()->transaction('user.update.child')->reply(200);
+        \YiMQ::mock()->prepare()->reply(200);
+        \YiMQ::mock()->commit()->reply(200);
+
+        $userModel = $this->createMockUser();
+        $data['action'] = 'CONFIRM';
+        $data['context'] = [
+            'type' => 'EC',
+            'processor' => 'user.update.ec.manual',
+            'id' => $id,
+            'message_id' => '1',
+            'data' => [
+                'id'=>$userModel->id,
+                'username'=>"test$id"
+            ]
+        ];
+
+        $response = $this->json('POST','/yimq',$data);
+        $response->assertStatus(200);
+        $this->assertDatabaseHas($this->userModelTable,['id'=>$userModel->id,'username'=>$data['context']['data']['username']]);
+        $this->assertDatabaseHas($this->processModelTable,['id'=>$id,'status'=>SubtaskStatus::DONE]);
+
+        $response = $this->json('POST','/yimq',$data);
+        $response->assertStatus(200);
+        $this->assertEquals($response->json()['status'],'retry_succeed');
+    }
+
+    public function testEcManualCommitFailed()
+    {
+        $id = $this->getProcessId();
+        \YiMQ::mock()->transaction('user.update.child')->reply(200);
+        \YiMQ::mock()->prepare()->reply(200);
+        \YiMQ::mock()->commit()->reply(200);
+
+        $userModel1 = $this->createMockUser();
+        $userModel2 = $this->createMockUser();
+        $data['action'] = 'CONFIRM';
+        $data['context'] = [
+            'type' => 'EC',
+            'processor' => 'user.update.ec.manual',
+            'id' => $id,
+            'message_id' => '1',
+            'data' => [
+                'id'=>$userModel1->id,
+                'username'=>$userModel2->username
+            ]
+        ];
+
+        $response = $this->json('POST','/yimq',$data);
+        $response->assertStatus(500);
+        $this->assertDatabaseMissing($this->userModelTable,['id'=>$userModel1->id,'username'=>$data['context']['data']['username']]);
+        $this->assertDatabaseHas($this->processModelTable,['id'=>$id,'status'=>SubtaskStatus::DOING]);
+    }
+
     public function testBcstCommitSuccess()
     {
         $id = $this->getProcessId();

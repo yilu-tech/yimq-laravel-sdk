@@ -21,6 +21,7 @@ return [
         'user.create' => \Tests\Services\UserCreate::class,
         'user.tcc_create' => \Tests\Services\UserTccCreate::class,
         'user.update' => \Tests\Services\UserUpdate::class,
+        'user.update.ec.manual' => \Tests\Services\UserUpdateEcManual::class,
 
     ],
     /**

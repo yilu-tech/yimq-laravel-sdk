@@ -11,9 +11,9 @@ use YiluTech\YiMQ\Processor\BaseProcessor\Processor;
 
 abstract class EcProcessor extends Processor
 {
-
     public $serverType = 'EC';
     public $type = SubtaskType::EC;
+    public $manual_mode = false;
     public function _runConfirm($context)
     {
         $this->setContextToThis($context);
@@ -29,19 +29,38 @@ abstract class EcProcessor extends Processor
             $this->createProcess(SubtaskStatus::DOING);
         }
 
+        if($this->manual_mode){
+             $this->_manualTransaction();
+        }else{
+             $this->_autoTransaction();
+        }
+
+        return ['status'=>"succeed"];
+
+
+    }
+    private function _manualTransaction(){
+        $this->do();
+
+    }
+    private function _autoTransaction(){
         try{
             \DB::beginTransaction();
-            $this->setAndlockSubtaskModel();
+            $this->_ec_begin();
             $this->do();
-            $this->processModel->status = SubtaskStatus::DONE;
-            $this->processModel->save();
+            $this->_ec_done();
             \DB::commit();
-            return ['status'=>"succeed"];
         }catch (\Exception $e){
             \DB::rollBack();
             throw $e;
         }
-
+    }
+    public function _ec_begin(){
+        $this->setAndlockSubtaskModel();
+    }
+    public  function _ec_done(){
+        $this->processModel->status = SubtaskStatus::DONE;
+        $this->processModel->save();
     }
 
 
