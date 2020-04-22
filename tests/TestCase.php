@@ -43,9 +43,10 @@ abstract class TestCase extends BaseTestCase
         return $index;
     }
     public function getProcessId(){
-//        $first = ProcessModel::query()->orderByDesc('id')->first();
-//        $index = $first ?  ++ $first->id : 100;
-        return $this->microtime();
+        $first = ProcessModel::query()->orderByDesc('id')->first();
+        $index = $first ?  ++ $first->id : 100;
+//        return $this->microtime();
+        return $this->microtime() + $index;
     }
 
     public function getUserId(){
