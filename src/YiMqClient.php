@@ -46,8 +46,11 @@ class YiMqClient
         ]);
     }
 
-    public function transaction($topic,$callback=null):TransactionMessage
+    public function transaction($topic=null,$callback=null):TransactionMessage
     {
+        if($topic == null){
+            return $this->getTransactionMessage();
+        }
 
         return new TransactionMessage($this,$topic,$callback);
 

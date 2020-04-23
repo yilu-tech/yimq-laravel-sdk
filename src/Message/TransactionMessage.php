@@ -40,24 +40,27 @@ class TransactionMessage extends Message
 
     private function _begin():TransactionMessage
     {
-        if( $this->client->hasTransactionMessage()){
-            throw new \Exception("MicroApi transaction message already exists.");
-        }
+        //1. 向协调器注册事物
         $this->create();
-        $this->client->setTransactionMessage($this);
+        //2. 开启事务
+        \DB::beginTransaction();
+        //3: 锁定message开始
+        $this->start();
         return  $this;
     }
 
     function create()
     {
-        //1. 向协调器注册事物
+        if( $this->client->hasTransactionMessage()){
+            throw new \Exception("MicroApi transaction message already exists.");
+        }
         $messageInfo = $this->createRemoteTransactionRecrod();
         $this->id = $messageInfo['id'];
-        //2. 本地数据库记录事物
+        //本地数据库记录事物
         $this->createLocalTransactionRecord($messageInfo);
-        //3. 开启事务
-        \DB::beginTransaction();
-        //4: 锁定message
+        $this->client->setTransactionMessage($this);
+    }
+    function start(){
         $this->model = MessageModel::lockForUpdate()->where('message_id',$this->id)->first();
         $this->local_id = $this->model->id;
     }
@@ -128,57 +131,57 @@ class TransactionMessage extends Message
 
     public function commit(){
 
-        $this->prepare();
         $this->localCommmit();
-        //本地commit后，如果远程commit错误，忽略错误,让服务端回查来状态来确认
-        try {
-            $this->remoteCommit();
-        }catch (\Exception $e){
-            \Log::error($e);
-        }
-
-
+        \DB::commit();
+        $this->remoteCommit();
         return $this;
     }
 
-    private function localCommmit(){
+    public function localCommmit(){
+        $this->prepare();
         $this->model->status = MessageStatus::DONE;
         $this->model->save();
-        \DB::commit();
     }
-    private function remoteCommit(){
-        $context['message_id'] = $this->id;
-        $mockConditions['action'] = TransactionMessageAction::COMMIT;
-        if($this->mockManager->hasMocker($this,$mockConditions)){//TODO 增加一个test环境生效的判断
-            $result = $this->mockManager->runMocker($this,$mockConditions);
-        }else{
-            $result = $this->client->callServer('confirm',$context);
+    public function remoteCommit(){
+        try {
+            $context['message_id'] = $this->id;
+            $mockConditions['action'] = TransactionMessageAction::COMMIT;
+            if($this->mockManager->hasMocker($this,$mockConditions)){//TODO 增加一个test环境生效的判断
+                $result = $this->mockManager->runMocker($this,$mockConditions);
+            }else{
+                $result = $this->client->callServer('confirm',$context);
+            }
+        }catch (\Exception $e){
+            //本地commit后，如果远程commit错误，忽略错误,让服务端回查来状态来确认
+            \Log::error($e);
         }
     }
 
     public function rollback(){
         \DB::rollBack();
         //本地rollback后，如果远程commit错误，忽略错误,让服务端回查来状态来确认
+        
+        $this->remoteRollback();
+    
+
+        return $this;
+    }
+    public function remoteRollback(){
+
         try {
             //TODO::添加一个mock锚点，测试rollback后修改message状态失败
             $this->model->status = MessageStatus::CANCELED;
             $this->model->save();
-            $this->remoteRollback();
+            $context['message_id'] = $this->id;
+            $mockConditions['action'] = TransactionMessageAction::ROLLBACK;
+            if($this->mockManager->hasMocker($this,$mockConditions)){//TODO 增加一个test环境生效的判断
+                $result = $this->mockManager->runMocker($this,$mockConditions);
+            }else{
+                $result = $this->client->callServer('cancel',$context);
+            }
         }catch (\Exception $e){
             \Log::error($e);
         }
-
-        return $this;
-    }
-    private function remoteRollback(){
-        $context['message_id'] = $this->id;
-        $mockConditions['action'] = TransactionMessageAction::ROLLBACK;
-        if($this->mockManager->hasMocker($this,$mockConditions)){//TODO 增加一个test环境生效的判断
-            $result = $this->mockManager->runMocker($this,$mockConditions);
-        }else{
-            $result = $this->client->callServer('cancel',$context);
-        }
-
     }
 
 

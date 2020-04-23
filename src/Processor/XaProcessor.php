@@ -21,7 +21,7 @@ abstract class XaProcessor extends BaseTccProcessor
     }
 
     public function _runTry($context){
-
+        $this->beforeTransaction();
         //1. 本地记录subtask
         $this->createProcess(SubtaskStatus::PREPARING);
         //TODO:: 如果子任务已经存在就不开启事务了
@@ -37,11 +37,13 @@ abstract class XaProcessor extends BaseTccProcessor
             //3. prepare xa事务
             $this->pdo->exec("XA END '$this->id'");
             $this->pdo->exec("XA PREPARE '$this->id'");
+            $this->afterTransaction();
             return $prepareResult;
 
         }catch (\Exception $e){
             $this->pdo->exec("XA END '$this->id'");
             $this->pdo->exec("XA ROLLBACK '$this->id'");
+            $this->catchTransaction();
             throw $e;
         }
 

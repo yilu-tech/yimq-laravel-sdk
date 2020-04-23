@@ -70,11 +70,14 @@ abstract class Processor
         ProcessModel::where('id',$this->id)->update(['status'=>SubtaskStatus::CANCELED]);
     }
 
-    private function beforeTransaction(){
+    protected function beforeTransaction(){
 
     }
 
-    private function afterTransaction(){
+    protected function afterTransaction(){
+
+    }
+    protected function catchTransaction(){
 
     }
     public function runConfirm($context){

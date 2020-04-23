@@ -54,6 +54,47 @@ class SubtaskProcessorTest extends TestCase
         $this->assertEquals($response->json()['message'],'Status is DONE.');
     }
 
+
+    public function testTransactionXaTryCommit()
+    {
+        \YiMQ::mock()->transaction('transaction.xa.processor')->reply(200);
+        \YiMQ::mock()->prepare()->reply(200);
+        \YiMQ::mock()->commit()->reply(200);
+
+        $id = $this->getProcessId();
+        $processor = 'user.create.xa.transaction';
+        $data['action'] = 'TRY';
+        $data['context'] = [
+            'type' => 'XA',
+            'processor' => $processor,
+            'id' => $id,
+            'message_id' => '1',
+            'data' => [
+                'username'=>"test$id"
+            ]
+        ];
+
+        $response = $this->json('POST','/yimq',$data);
+        $response->assertStatus(200);
+
+
+        \DB::reconnect();//需要重新连接数据里否则xa的prepare状态下无法进行其他数据库操作
+        //已经是PREPARED状态，但还未commit 查出状态
+        $this->assertDatabaseHas($this->processModelTable,['id'=>$id,'status'=>SubtaskStatus::PREPARING]);
+
+        $data['action'] = 'CONFIRM';
+        $data['context'] = [
+            'type' => 'XA',
+            'id' => $id,
+            'processor' => $processor,
+        ];
+        //第1次confirm
+        $response = $this->post('/yimq',$data);
+        $response->assertStatus(200);
+        $this->assertEquals($response->json()['message'],'succeed');
+        $this->assertDatabaseHas($this->processModelTable,['id'=>$id,'status'=>SubtaskStatus::DONE]);
+    }
+
     public function testXaTryFailedAutoRollback()
     {
         $id = $this->getProcessId();
@@ -82,6 +123,28 @@ class SubtaskProcessorTest extends TestCase
         $response->assertStatus(200);
         $this->assertEquals($response->json()['message'],'retry_succeed');
         $this->assertDatabaseHas($this->processModelTable,['id'=>$id,'status'=>SubtaskStatus::CANCELED]);
+    }
+
+    public function testTransactionXaTryFailedAutoRollback()
+    {
+        \YiMQ::mock()->transaction('transaction.xa.processor')->reply(200);
+        \YiMQ::mock()->prepare()->reply(200);
+        \YiMQ::mock()->rollback()->reply(200);
+        $id = $this->getProcessId();
+        $processor = 'user.create.xa.transaction';
+        $data['action'] = 'TRY';
+        $data['context'] = [
+            'type' => 'XA',
+            'processor' => $processor,
+            'id' => $id,
+            'message_id' => '1',
+            'data' => [
+                'username'=>"test$id",
+                'failed' => true
+            ]
+        ];
+        $response = $this->json('POST','/yimq',$data);
+        $response->assertStatus(400);
     }
 
 
