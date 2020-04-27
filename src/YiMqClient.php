@@ -26,7 +26,7 @@ class YiMqClient
     private $uri;
     public $serviceName;
     public $guzzleClient;
-    private $actions = [
+    public $actions = [
         'create' => '/message/create',
         'subtask' => '/message/subtask',
         'prepare' => '/message/prepare',
@@ -148,17 +148,8 @@ class YiMqClient
             $result = $this->guzzleClient->post($this->actions[$action],[
                 'json' => $context
             ]);
-        } catch (RequestException $e) {
-
-            if ($e instanceof ConnectException) {
-                $url = $e->getHandlerContext()['url'];
-                $msg = "MicroApi can not connect: $url";
-            } elseif ($e instanceof RequestException && $e->getCode() == 0) {
-                $msg = "MicroApi cURL error url malformed: $this->uri";
-            } else {
-                $msg = $e->getMessage();
-            }
-            throw new YiMqHttpRequestException($msg, $e);
+        } catch (\Exception $e) {
+            throw new YiMqHttpRequestException($e);
         }
 
         return json_decode($result->getBody()->getContents(),true);

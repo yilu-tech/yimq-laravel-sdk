@@ -10,10 +10,15 @@ use YiluTech\MicroApi\Adapters\MicroApiHttpRequest;
 
 class YiMqHttpRequestException extends GuzzleRequestException  {
     
-    public function __construct($msg,GuzzleRequestException $e = null)
+    public function __construct($e)
     {
-        if(!$e){
-            return $this->message = $msg;
+        if ($e instanceof ConnectException) {
+            $url = $e->getHandlerContext()['url'];
+            $msg = "MicroApi can not connect: $url";
+        } elseif ($e instanceof RequestException && $e->getCode() == 0) {
+            $msg = "MicroApi cURL error url malformed: $this->uri";
+        } else {
+            $msg = $e->getMessage();
         }
 
         return parent::__construct($msg,$e->getRequest(),$e->getResponse(),$e->getPrevious());

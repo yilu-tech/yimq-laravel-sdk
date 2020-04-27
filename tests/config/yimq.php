@@ -23,6 +23,7 @@ return [
         'user.tcc_create' => \Tests\Services\UserTccCreate::class,
         'user.update' => \Tests\Services\UserUpdate::class,
         'user.update.ec.manual' => \Tests\Services\UserUpdateEcManual::class,
+        'user.exception' => \Tests\Services\ExceptionProcessor::class,
 
     ],
     /**

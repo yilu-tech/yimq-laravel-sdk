@@ -5,22 +5,38 @@ namespace YiluTech\YiMQ\Subtask\BaseSubtask;
 
 
 use YiluTech\YiMQ\Constants\SubtaskStatus;
+use YiluTech\YiMQ\Exceptions\YiMqHttpRequestException;
+use YiluTech\YiMQ\Exceptions\YiMqSubtaskPrepareException;
 use YiluTech\YiMQ\Models\Subtask as SubtaskModel;
 
 class BaseTccSubtask extends ProcessorSubtask
 {
-    public $prepareResult;
+    public $prepareStatus;
+    public $prepareMessage;
+    public $prepareData;
+    public $throw = true;
 
     public function _try()
     {
-
-        if($this->mockManager->hasMocker($this)){//TODO 增加一个test环境生效的判断
-            $result = $this->mockManager->runMocker($this);
-        }else{
-            $result = $this->client->callServer('subtask',$this->getContext());
-        }
+        $result = $this->callServer();
         $this->id = $result['id'];
-        $this->prepareResult = $result['prepareResult'];
+
+        $prepareResult = $result['prepareResult'];
+        $this->prepareStatus = $prepareResult['status'];
+        $this->prepareData = $prepareResult['data'];
+
+        if($this->prepareSuccessful() == false){
+            $this->prepareMessage =  $prepareResult['message'];
+
+            if($this->throw){
+                throw new YiMqSubtaskPrepareException($this->prepareMessage,$this->prepareData,$this->prepareStatus);
+            }else{
+                return $this;
+            }
+        }
+
+
+
 
 
         $this->model = new SubtaskModel();
@@ -31,6 +47,22 @@ class BaseTccSubtask extends ProcessorSubtask
         $this->model->save();
 
         $this->message->addTccSubtask($this);
+        return $this;
+    }
+
+    public function prepareSuccessful(){
+        return $this->prepareStatus == 200 ? true : false;
+    }
+    public function callServer(){
+        if($this->mockManager->hasMocker($this)){//TODO 增加一个test环境生效的判断
+            return $this->mockManager->runMocker($this);
+        }else{
+            return $this->client->callServer('subtask',$this->getContext());
+        }
+    }
+
+    public function throw($throw=true){
+        $this->throw = $throw;
         return $this;
     }
 

@@ -66,7 +66,7 @@ class RealEnvMessageTest extends TestCase
         \YiMQ::commit();
         //暂停等待协调器去confirm
         usleep(800*1000);
-        $this->assertDatabaseHas($this->userModelTable,['id'=>$tccSubtask->prepareResult['id']]);
+        $this->assertDatabaseHas($this->userModelTable,['id'=>$tccSubtask->prepareData['id']]);
     }
 
     public function testAddXaSubtaskLocalCommitFailedTimeoutCheck()
@@ -87,7 +87,7 @@ class RealEnvMessageTest extends TestCase
 
         //暂停等待message超时确认message状态后去confirm
         sleep(3);
-        $this->assertDatabaseHas($this->userModelTable,['id'=>$tccSubtask->prepareResult['id']]);
+        $this->assertDatabaseHas($this->userModelTable,['id'=>$tccSubtask->prepareData['id']]);
     }
 
 
@@ -156,7 +156,7 @@ class RealEnvMessageTest extends TestCase
         }catch (\Exception $e){
             \YiMQ::rollback();
         }
-        $this->assertDatabaseMissing($this->userModelTable,['id'=>$tccSubtask1->prepareResult['id']]);
+        $this->assertDatabaseMissing($this->userModelTable,['id'=>$tccSubtask1->prepareData['id']]);
         UserModel::create(['username'=>$tccData1['username']]);
     }
 
@@ -182,7 +182,7 @@ class RealEnvMessageTest extends TestCase
             sleep(3);
             \YiMQ::rollback();
         }
-        $this->assertDatabaseMissing($this->userModelTable,['id'=>$tccSubtask1->prepareResult['id']]);
+        $this->assertDatabaseMissing($this->userModelTable,['id'=>$tccSubtask1->prepareData['id']]);
         UserModel::create(['username'=>$tccData1['username']]);
     }
 

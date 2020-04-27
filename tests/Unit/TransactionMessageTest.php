@@ -5,6 +5,8 @@ namespace Tests\Unit;
 use Tests\App\Models\UserModel;
 use Tests\TestCase;
 use YiluTech\YiMQ\Constants\MessageStatus;
+use YiluTech\YiMQ\Exceptions\YiMqHttpRequestException;
+use YiluTech\YiMQ\Exceptions\YiMqSubtaskPrepareException;
 
 
 class TransactionMessageTest extends TestCase
@@ -296,7 +298,6 @@ class TransactionMessageTest extends TestCase
         $this->assertNotNull($exception);
         $this->assertDatabaseMissing($this->userModelTable,['username'=>$username]);
     }
-
 
 
 

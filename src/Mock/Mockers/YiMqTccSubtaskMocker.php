@@ -4,6 +4,9 @@
 namespace YiluTech\YiMQ\Mock\Mockers;
 
 
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Response;
 use YiluTech\YiMQ\Exceptions\YiMqHttpRequestException;
 use YiluTech\YiMQ\YiMqClient;
 use YiluTech\YiMQ\Models\Subtask as SutaskModel;
@@ -37,19 +40,29 @@ class YiMqTccSubtaskMocker extends YiMqMocker
 
     public function run()
     {
+        $first = SutaskModel::query()->orderByDesc('id')->first();
+        $id = $first ?  ++ $first->id : 1;
         switch ($this->statusCode){
             case 200:
-                $first = SutaskModel::query()->orderByDesc('id')->first();
-                $index = $first ?  ++ $first->id : 1;
+
                 return [
-                    'id' =>  $index ,
-                    'prepareResult' => $this->data,
-                    'status' => 'PREPARED'
+                    'id' =>  $id ,
+                    'prepareResult'=>[
+                        'status' => $this->statusCode,
+                        'data' => $this->data
+                    ]
                 ];
+            case 500:
             case 400:
-                throw new YiMqHttpRequestException('YiMQ server 400 error.');
-            case 500;
-                throw new YiMqHttpRequestException('YiMQ server 500 error.');
+                return [
+                    'id' =>  $id ,
+                    'prepareResult'=>[
+                        'status' => $this->statusCode,
+                        'message'=> "Subtask ($id) prepare failed.",
+                        'data' => $this->data
+                    ]
+                ];
+
         }
     }
 }
