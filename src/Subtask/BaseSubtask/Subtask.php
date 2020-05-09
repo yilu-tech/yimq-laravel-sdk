@@ -41,6 +41,11 @@ abstract class Subtask
         return $this;
     }
 
+    public function timeout($milliseconds){
+        $this->options['timeout'] = $milliseconds;
+        return $this;
+    }
+
     public function getData(){
         return $this->data;
     }

@@ -26,6 +26,10 @@ class UserTccCreate extends TccProcessor
         if(isset($this->data['failed'])){
             abort(400,'mock failed');
         }
+
+        if(isset($this->data['timeout'])){
+            usleep($this->data['timeout']*1000 *2);
+        }
         return $userModel->toArray();
     }
 

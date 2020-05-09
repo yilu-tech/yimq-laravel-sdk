@@ -23,7 +23,7 @@ class BaseTccSubtask extends ProcessorSubtask
 
         $prepareResult = $result['prepareResult'];
         $this->prepareStatus = $prepareResult['status'];
-        $this->prepareData = $prepareResult['data'];
+        $this->prepareData = isset($prepareResult['data'])?$prepareResult['data']:null;
 
         if($this->prepareSuccessful() == false){
             $this->prepareMessage =  $prepareResult['message'];

@@ -186,5 +186,26 @@ class RealEnvMessageTest extends TestCase
         UserModel::create(['username'=>$tccData1['username']]);
     }
 
+    public function testMessageAddTccTimeout(){
+
+
+
+
+        $message = \YiMQ::transaction('user.create')->begin();
+        $data['username'] = 'jack';
+        $data['timeout'] = 500;
+        $tccSubtask = \YiMQ::tcc('user@user.tcc_create')
+            ->data($data)
+            ->timeout(500)
+            ->attempt(11)
+            ->throw(false)
+            ->try();
+        $this->assertEquals($tccSubtask->prepareStatus,500);
+        \YiMQ::rollback();
+        $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id,'status'=>MessageStatus::CANCELED]);
+        sleep(1);
+        $this->assertDatabaseMissing($this->userModelTable,['username'=>$data['username'] ]);
+    }
+
 
 }

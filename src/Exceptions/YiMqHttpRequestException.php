@@ -14,9 +14,9 @@ class YiMqHttpRequestException extends GuzzleRequestException  {
     {
         if ($e instanceof ConnectException) {
             $url = $e->getHandlerContext()['url'];
-            $msg = "MicroApi can not connect: $url";
+            $msg = "YiMQ can not connect $url ". $e->getMessage();
         } elseif ($e instanceof RequestException && $e->getCode() == 0) {
-            $msg = "MicroApi cURL error url malformed: $this->uri";
+            $msg = "YiMQ cURL error url malformed $this->uri" . $e->getMessage();
         } else {
             $msg = $e->getMessage();
         }

@@ -145,9 +145,13 @@ class YiMqClient
         $context['actor'] = $this->manager->actorName;
 
         try {
-            $result = $this->guzzleClient->post($this->actions[$action],[
-                'json' => $context
-            ]);
+            $requestOptions = [
+                'json' => $context,
+            ];
+            if(isset($context['options']['timeout'])){
+                $requestOptions['timeout'] = $context['options']['timeout']/1000+1;
+            }
+            $result = $this->guzzleClient->post($this->actions[$action],$requestOptions);
         } catch (\Exception $e) {
             throw new YiMqHttpRequestException($e);
         }
