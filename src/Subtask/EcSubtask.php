@@ -31,7 +31,8 @@ class EcSubtask extends ProcessorSubtask
         return [
             'type'=> $this->serverType,
             'processor'=>$this->processor,
-            'data'=> $this->getData()
+            'data'=> $this->getData(),
+            'options'=>$this->options
         ];
     }
 }

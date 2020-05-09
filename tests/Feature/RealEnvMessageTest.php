@@ -22,7 +22,7 @@ class RealEnvMessageTest extends TestCase
         $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id]);
 
 
-        $ecSubtask = \YiMQ::ec('user@user.update')->data($ecData)->join();
+        $ecSubtask = \YiMQ::ec('user@user.update')->data($ecData)->attempt(11)->join();
         \YiMQ::commit();
         $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id,'status'=>MessageStatus::DONE]);
         sleep(1);

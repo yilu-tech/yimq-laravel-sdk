@@ -41,7 +41,8 @@ class BcstSubtask extends Subtask
         return [
             'type'=> $this->serverType,
             'topic'=>$this->topic,
-            'data'=> $this->getData()
+            'data'=> $this->getData(),
+            'options'=>$this->options
         ];
     }
 

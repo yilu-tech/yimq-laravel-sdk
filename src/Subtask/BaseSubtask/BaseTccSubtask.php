@@ -72,7 +72,8 @@ class BaseTccSubtask extends ProcessorSubtask
             'message_id' => $this->message->id,
             'type' => $this->serverType,
             'processor' => $this->processor,
-            'data' => $this->data
+            'data' => $this->data,
+            'options'=>$this->options
         ];
     }
 

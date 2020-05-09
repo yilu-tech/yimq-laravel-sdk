@@ -18,6 +18,7 @@ abstract class Subtask
     protected $data;
     protected $mockManager;
     public $model;
+    public $options = [];
 
     public function __construct(YiMqClient $client,TransactionMessage $message)
     {
@@ -35,6 +36,11 @@ abstract class Subtask
         $this->data = $data;
         return $this;
     }
+    public function attempt($attempts){
+        $this->options['attempts'] = $attempts;
+        return $this;
+    }
+
     public function getData(){
         return $this->data;
     }
