@@ -128,6 +128,9 @@ class YiMqClient
     public function getTransactionMessage():TransactionMessage{
         return $this->manager->transactionMessage;
     }
+    public function clearTransactionMessage(){
+        $this->manager->transactionMessage = null;
+    }
 
     public function getMockManager():YiMqMockManager
     {

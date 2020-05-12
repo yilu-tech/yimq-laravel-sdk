@@ -133,6 +133,7 @@ class TransactionMessage extends Message
 
         $this->localCommmit();
         \DB::commit();
+        $this->client->clearTransactionMessage();
         $this->remoteCommit();
         return $this;
     }
@@ -159,6 +160,7 @@ class TransactionMessage extends Message
 
     public function rollback(){
         \DB::rollBack();
+        $this->client->clearTransactionMessage();
         //本地rollback后，如果远程commit错误，忽略错误,让服务端回查来状态来确认
         
         $this->remoteRollback();
