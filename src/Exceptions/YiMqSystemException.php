@@ -52,4 +52,8 @@ class YiMqSystemException extends RuntimeException
         );
     }
 
+    public function render($request){
+        return $this->response;
+    }
+
 }
