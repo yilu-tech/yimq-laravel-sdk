@@ -6,8 +6,9 @@ namespace YiluTech\YiMQ\Exceptions;
 
 use RuntimeException;
 use Psr\Log\LoggerInterface;
+use Illuminate\Contracts\Support\Responsable;
 
-class YiMqSystemException extends RuntimeException
+class YiMqSystemException extends RuntimeException implements  Responsable
 {
     protected $code = 500;
     protected $response;
@@ -26,16 +27,6 @@ class YiMqSystemException extends RuntimeException
         parent::__construct($message);
     }
 
-    /**
-     * Get the underlying response instance.
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function getResponse()
-    {
-        return $this->response;
-    }
-
     public function report()
     {
 
@@ -52,8 +43,11 @@ class YiMqSystemException extends RuntimeException
         );
     }
 
-    public function render($request){
+    /**
+     * @inheritDoc
+     */
+    public function toResponse($request)
+    {
         return $this->response;
     }
-
 }
