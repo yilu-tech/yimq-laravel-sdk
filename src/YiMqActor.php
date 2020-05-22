@@ -28,6 +28,10 @@ class YiMqActor
     public function try($context){
         \Log::debug('try',$context);
         $processor = $this->getProcessor($context);
+        if($processor == null){
+            $processor = $context['processor'];
+            throw new YiMqSystemException("Processor <$processor> not exists");
+        }
         return $processor->runTry($context);
 
     }
@@ -35,11 +39,18 @@ class YiMqActor
     public function confirm($context){
         \Log::debug('confirm',$context);
         $processor = $this->getProcessor($context);
+        if($processor == null){
+            $processor = $context['processor'];
+            throw new YiMqSystemException("Processor <$processor> not exists");
+        }
         return $processor->runConfirm($context);
     }
 
     public function cancel($context){
         $processor = $this->getProcessor($context);
+        if($processor == null){
+            return ['message'=>"succeed"];
+        }
         return $processor->runCancel($context);
     }
 
@@ -70,7 +81,8 @@ class YiMqActor
         if($context['type'] == SubtaskServerType::LSTR){
             $processor = $context['processor'];
             if(!isset($this->listenersMap[$processor])){
-                throw new YiMqSystemException("Processor <$processor> not exists");
+//                throw new YiMqSystemException("Processor <$processor> not exists");
+                return null;
             }
             if($context['topic'] != $this->listenersMap[$processor]){
                 $contextTopic = $context['topic'];
@@ -82,7 +94,8 @@ class YiMqActor
             $processor = $context['processor'];
 
             if(!isset($this->processorsMap[$processor])){
-                throw new YiMqSystemException("Processor <$processor> not exists");
+//                throw new YiMqSystemException("Processor <$processor> not exists");
+                return null;
             }
             return resolve($this->processorsMap[$processor]);
         }else{
