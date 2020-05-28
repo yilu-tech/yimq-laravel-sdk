@@ -49,7 +49,10 @@ class YiMqActorClear
     }
     private function deleteMessage($message){
         if(in_array($message->status,[MessageStatus::DONE,MessageStatus::CANCELED])){
-            SubtaskModel::where('message_id',$message->message_id)->delete();
+            $subtasks = SubtaskModel::where('message_id',$message->message_id)->get();
+            foreach ($subtasks as $subtask){
+                $subtask->delete();
+            }
             $message->delete();
         }else{
             throw new YiMqSystemException('message ' . $message->message_id.'status is '.$message->status );
