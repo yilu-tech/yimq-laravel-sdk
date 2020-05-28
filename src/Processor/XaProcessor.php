@@ -8,6 +8,7 @@ use YiluTech\YiMQ\Constants\SubtaskServerType;
 use YiluTech\YiMQ\Constants\SubtaskStatus;
 use YiluTech\YiMQ\Constants\SubtaskType;
 use YiluTech\YiMQ\Exceptions\YiMqSystemException;
+use YiluTech\YiMQ\Models\ProcessModel;
 use YiluTech\YiMQ\Processor\BaseProcessor\BaseTccProcessor;
 
 abstract class XaProcessor extends BaseTccProcessor
@@ -81,7 +82,12 @@ abstract class XaProcessor extends BaseTccProcessor
             }
 
             //如果不是xa id不存在，就锁定任务记录，判断状态是否已为done
-            $this->setAndlockSubtaskModel();
+            //$subTask = $this->setAndlockSubtaskModel();
+            $this->processModel =  ProcessModel::lockForUpdate()->find($this->id);
+            if (!$this->processModel) {
+                return ['message'=>"not_prepare"];
+            }
+
             if($this->processModel->status == SubtaskStatus::CANCELED){
                 return ['message'=>"retry_succeed"];
             }
