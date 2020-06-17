@@ -17,7 +17,6 @@ abstract class EcProcessor extends Processor
     public function _runConfirm($context)
     {
         $this->setContextToThis($context);
-        $this->_runValidate();
 
         $subtaskModel =  ProcessModel::find($this->id);
         //如果任务已经存在且已经完成
@@ -28,6 +27,8 @@ abstract class EcProcessor extends Processor
         if(!isset($subtaskModel)){
             $this->createProcess(SubtaskStatus::DOING);
         }
+
+        $this->_runValidate();
 
         if($this->manual_mode){
              $this->_manualTransaction();
