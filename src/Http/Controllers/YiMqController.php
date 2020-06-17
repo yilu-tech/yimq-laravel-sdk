@@ -14,6 +14,9 @@ class YiMqController
     function run(Request $request,YiMqActor $yiMqActor,YiMqActorConfig $yiMqActorConfig,YiMqActorClear $yiMqActorClear){
         $action = $request->input('action');
         $context = $request->input('context');
+        if(env('YIMQ_ACTION_LOG',true)){
+            \Log::info("YiMQ Action $action",$context);
+        }
         switch ($action){
             case 'TRY':
                 return $yiMqActor->try($context);
