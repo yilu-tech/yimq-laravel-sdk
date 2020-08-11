@@ -14,8 +14,8 @@ class CreateYimqProcessesTable extends Migration
     public function up()
     {
         Schema::create('yimq_processes', function (Blueprint $table) {
-            $table->unsignedInteger('id')->primary();
-            $table->unsignedInteger('message_id');
+            $table->unsignedBigInteger('id')->primary();
+            $table->unsignedBigInteger('message_id')->index('message_id');
             $table->unsignedTinyInteger('type')->nullable(false);
             $table->char('processor');
             $table->json('data')->nullable();

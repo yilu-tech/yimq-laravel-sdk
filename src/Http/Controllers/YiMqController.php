@@ -15,6 +15,7 @@ class YiMqController
         $action = $request->input('action');
         $context = $request->input('context');
         if(env('YIMQ_ACTION_LOG',true)){
+            $context = is_array($context) ? $context : [$context];
             \Log::info("YiMQ Action $action",$context);
         }
         switch ($action){
