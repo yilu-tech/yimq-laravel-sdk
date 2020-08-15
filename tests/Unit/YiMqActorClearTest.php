@@ -37,15 +37,20 @@ class YiMqActorClearTest extends TestCase
         $xid = "clear_test_1";
         $pdo = \DB::connection()->getPdo();
 
-        $doneMessage1 =$this->createMessage(MessageStatus::DONE);
-        $this->assertDatabaseHas($this->messageTable,['message_id'=>$doneMessage1->message_id,"status"=>MessageStatus::DONE]);
-        $doneMessage2 =$this->createMessage(MessageStatus::DONE);
-        $this->assertDatabaseHas($this->messageTable,['message_id'=>$doneMessage2->message_id,"status"=>MessageStatus::DONE]);
+        $messageIds = [];
+        for ($i =0;$i<6;$i++){//用这个删除，单元测试中，有任一一个锁定message，where in 条件大于6的时候，就会失败，所以采用了存储过程一个个删除
+            $message =$this->createMessage(MessageStatus::DONE);
+            $messageIds[] = $message->message_id;
+        }
+
+        $this->assertDatabaseHas($this->messageTable,['message_id'=>$messageIds[0],"status"=>MessageStatus::DONE]);
+
+
 
         try {
 
             $pdo->exec("XA START '$xid'");
-            MessageModel::where('message_id',$doneMessage2->message_id)->lockForUpdate()->get();
+            MessageModel::where('message_id',$messageIds[1])->lockForUpdate()->get();
             $pdo->exec("XA end '$xid'");
             $pdo->exec("XA PREPARE '$xid'");
             //actor clear会开启新的事务，所以把db重新连接，建立新的session
@@ -53,19 +58,19 @@ class YiMqActorClearTest extends TestCase
 
 
             $context = [
-                'done_message_ids' => [$doneMessage1->message_id,$doneMessage2->message_id],
+                'done_message_ids' => $messageIds,
                 'canceled_message_ids' => [],
                 'process_ids' => []
             ];
             $yimqActorClear =  resolve(YiMqActorClear::class );
             $result = $yimqActorClear->run($context);
-            $this->assertEquals($result['failed_done_message_ids'],[$doneMessage2->message_id]);
+            $this->assertEquals($result['failed_done_message_ids'],[$messageIds[1]]);
 
-            $this->assertDatabaseMissing($this->messageTable,['message_id'=>$doneMessage1->message_id]);
-            $this->assertDatabaseHas($this->messageTable,['message_id'=>$doneMessage2->message_id]);
+            $this->assertDatabaseMissing($this->messageTable,['message_id'=>$messageIds[0]]);
+            $this->assertDatabaseHas($this->messageTable,['message_id'=>$messageIds[1]]);
         }finally {
             $pdo->exec("XA commit '$xid'");
-            $this->assertDatabaseHas($this->messageTable,['message_id'=>$doneMessage2->message_id]);
+            $this->assertDatabaseHas($this->messageTable,['message_id'=>$messageIds[1]]);
         }
     }
 
@@ -174,15 +179,18 @@ class YiMqActorClearTest extends TestCase
         $xid = "clear_test_1";
         $pdo = \DB::connection()->getPdo();
 
-        $doneProcess1 =$this->createProcess(SubtaskStatus::DONE);
-        $this->assertDatabaseHas($this->processModelTable,['id'=>$doneProcess1->id,"status"=>SubtaskStatus::DONE]);
-        $donePorcess2 =$this->createProcess(SubtaskStatus::DONE);
-        $this->assertDatabaseHas($this->processModelTable,['id'=>$donePorcess2->id,"status"=>SubtaskStatus::DONE]);
+        $processIds = [];
+        for ($i =0;$i<11;$i++){// 不用存储过程的话  process where in 条件大于11的时候，就会失败，所以采用了存储过程一个个删除
+            $process =$this->createProcess(SubtaskStatus::DONE);
+            $processIds[] = $process->id;
+        }
+
+        $this->assertDatabaseHas($this->processModelTable,['id'=>$processIds[0],"status"=>SubtaskStatus::DONE]);
 
         try {
 
             $pdo->exec("XA START '$xid'");
-            ProcessModel::where('id',$donePorcess2->id)->lockForUpdate()->get();
+            ProcessModel::where('id',$processIds[1])->lockForUpdate()->get();
             $pdo->exec("XA end '$xid'");
             $pdo->exec("XA PREPARE '$xid'");
             //actor clear会开启新的事务，所以把db重新连接，建立新的session
@@ -191,17 +199,17 @@ class YiMqActorClearTest extends TestCase
             $context = [
                 'done_message_ids' => [],
                 'canceled_message_ids' => [],
-                'process_ids' => [$doneProcess1->id,$donePorcess2->id]
+                'process_ids' => $processIds
             ];
             $yimqActorClear =  resolve(YiMqActorClear::class );
             $result = $yimqActorClear->run($context);
-            $this->assertEquals($result['failed_process_ids'],[$donePorcess2->id]);
+            $this->assertEquals($result['failed_process_ids'],[$processIds[1]]);
 
-            $this->assertDatabaseMissing($this->processModelTable,['id'=>$doneProcess1->id]);
-            $this->assertDatabaseHas($this->processModelTable,['id'=>$donePorcess2->id]);
+            $this->assertDatabaseMissing($this->processModelTable,['id'=>$processIds[0]]);
+            $this->assertDatabaseHas($this->processModelTable,['id'=>$processIds[1]]);
         }finally {
             $pdo->exec("XA commit '$xid'");
-            $this->assertDatabaseHas($this->processModelTable,['id'=>$donePorcess2->id]);
+            $this->assertDatabaseHas($this->processModelTable,['id'=>$processIds[1]]);
         }
     }
 
