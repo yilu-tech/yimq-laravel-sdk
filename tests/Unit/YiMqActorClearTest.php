@@ -63,7 +63,11 @@ class YiMqActorClearTest extends TestCase
                 'process_ids' => []
             ];
             $yimqActorClear =  resolve(YiMqActorClear::class );
+            $stime=microtime(true);
             $result = $yimqActorClear->run($context);
+            $etime=microtime(true);
+            $total=$etime-$stime;
+            dump('清理时间',$total);
             $this->assertEquals($result['failed_done_message_ids'],[$messageIds[1]]);
 
             $this->assertDatabaseMissing($this->messageTable,['message_id'=>$messageIds[0]]);

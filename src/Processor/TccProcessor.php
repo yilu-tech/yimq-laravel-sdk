@@ -8,6 +8,7 @@ use YiluTech\YiMQ\Constants\SubtaskServerType;
 use YiluTech\YiMQ\Constants\SubtaskStatus;
 use YiluTech\YiMQ\Constants\SubtaskType;
 use YiluTech\YiMQ\Exceptions\YiMqSystemException;
+use YiluTech\YiMQ\Models\ProcessModel;
 use YiluTech\YiMQ\Processor\BaseProcessor\BaseTccProcessor;
 
 abstract class TccProcessor extends BaseTccProcessor
@@ -85,8 +86,12 @@ abstract class TccProcessor extends BaseTccProcessor
     {
         //2. 开启事务
         \DB::beginTransaction();
-        $this->setAndlockSubtaskModel();
-
+//        $this->setAndlockSubtaskModel();
+        $this->processModel =  ProcessModel::lockForUpdate()->find($this->id);
+        if (!$this->processModel) {
+            \DB::rollBack();
+            return ['message'=>"not_prepare"];
+        }
 
 
         //如果任务已经取消

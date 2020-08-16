@@ -197,6 +197,31 @@ class SubtaskProcessorTest extends TestCase
         $this->assertEquals($response->json()['message'],'Status is CANCELED.');
 
     }
+     public function testTccCancelNotExists(){
+         $processor = 'user.tcc_create';
+         $data['action'] = 'CANCEL';
+         $data['context'] = [
+             'type' => 'TCC',
+             'id' => 112456317623,
+             'processor' => $processor
+         ];
+         //第1次Cancel
+         $response = $this->post('/yimq',$data);
+         $this->assertEquals($response->json()['message'],'not_prepare');
+
+     }
+    public function testXaCancelNotExists(){
+        $processor = 'user.create';
+        $data['action'] = 'CANCEL';
+        $data['context'] = [
+            'type' => 'XA',
+            'id' => 1123123,
+            'processor' => $processor
+        ];
+        //第1次Cancel
+        $response = $this->post('/yimq',$data);
+        $this->assertEquals($response->json()['message'],'not_prepare');
+    }
 
 
     public function testTccTryCommit()
