@@ -15,7 +15,7 @@ class CreateYimqClearProcedure extends Migration
     {
         $sql = "
 DROP PROCEDURE IF EXISTS yimq_clear;
-CREATE DEFINER=`root`@`%` PROCEDURE `yimq_clear`(IN type VARCHAR(10), IN ids json)
+CREATE PROCEDURE `yimq_clear`(IN type VARCHAR(10), IN ids json)
     SQL SECURITY INVOKER
 BEGIN
 
