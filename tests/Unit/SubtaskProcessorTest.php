@@ -59,7 +59,7 @@ class SubtaskProcessorTest extends TestCase
     {
         \YiMQ::mock()->transaction('transaction.xa.processor')->reply(200);
         \YiMQ::mock()->prepare()->reply(200);
-        \YiMQ::mock()->commit()->reply(200);
+//        \YiMQ::mock()->commit()->reply(200);
 
         $id = $this->getProcessId();
         $processor = 'user.create.xa.transaction';
@@ -68,7 +68,7 @@ class SubtaskProcessorTest extends TestCase
             'type' => 'XA',
             'processor' => $processor,
             'id' => $id,
-            'message_id' => '1',
+            'message_id' => '1001',
             'data' => [
                 'username'=>"test$id"
             ]
@@ -93,6 +93,7 @@ class SubtaskProcessorTest extends TestCase
         $response->assertStatus(200);
         $this->assertEquals($response->json()['message'],'succeed');
         $this->assertDatabaseHas($this->processModelTable,['id'=>$id,'status'=>SubtaskStatus::DONE]);
+        $this->assertDatabaseHas($this->messageTable,["parent_message_id" => 1001,'parent_process_id'=>$id]);
     }
 
     public function testXaTryFailedAutoRollback()

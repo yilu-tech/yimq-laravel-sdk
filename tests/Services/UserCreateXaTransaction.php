@@ -13,7 +13,7 @@ class UserCreateXaTransaction extends XaProcessor
 
     function beforeTransaction()
     {
-        \YiMQ::transaction('transaction.xa.processor')->create();//创建远程事务
+        \YiMQ::transaction('transaction.xa.processor')->setParent($this->message_id,$this->id)->create();//创建远程事务
     }
 
 
@@ -33,12 +33,12 @@ class UserCreateXaTransaction extends XaProcessor
 
     function afterTransaction()
     {
-        \YiMQ::transaction()->remoteCommit(); //事务远程commit
+//        \YiMQ::transaction()->remoteCommit(); //事务远程commit
     }
 
     function catchTransaction()
     {
-        \YiMQ::transaction()->remoteRollback();//事务远程回滚
+//        \YiMQ::transaction()->remoteRollback();//事务远程回滚
     }
 
     protected function validate($validator)

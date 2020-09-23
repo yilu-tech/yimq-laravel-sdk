@@ -9,8 +9,8 @@ use YiluTech\YiMQ\Exceptions\YiMqSystemException;
 use YiluTech\YiMQ\Models\ProcessModel;
 abstract class Processor
 {
-    protected $id;
-    protected $message_id;
+    public $id;
+    public $message_id;
     protected $processor;
     protected $data;
     protected $processModel;

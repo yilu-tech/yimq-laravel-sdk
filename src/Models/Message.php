@@ -14,6 +14,8 @@ class Message extends Model
     protected $fillable = [
         'id',
         'message_id',
+        'parent_message_id',
+        'parent_process_id',
         'topic',
         'type',
         'data',

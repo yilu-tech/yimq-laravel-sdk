@@ -48,7 +48,12 @@ class TransactionMessage extends Message
         $this->start();
         return  $this;
     }
+    function setParent($message_id,$process_id){
+        $this->parent_message_id = $message_id;
+        $this->parent_process_id = $process_id;
 
+        return $this;
+    }
     function create()
     {
         if( $this->client->hasTransactionMessage()){
@@ -71,7 +76,9 @@ class TransactionMessage extends Message
             'topic' => $this->getTopic(),
             'type' => MessageServerType::TRANSACTION,
             'data' => $this->data,
-            'delay' => $this->delay
+            'delay' => $this->delay,
+            'parent_message_id' => $this->parent_message_id,
+            'parent_process_id' => $this->parent_process_id
         ];
         $mockConditions['action'] = TransactionMessageAction::BEGIN;
         if($this->mockManager->hasMocker($this,$mockConditions)){//TODO 增加一个test环境生效的判断
@@ -89,6 +96,8 @@ class TransactionMessage extends Message
         $messageModel->status = MessageStatus::PENDING;
         $messageModel->type = MessageType::TRANSACTION;
         $messageModel->topic = $this->topic;
+        $messageModel->parent_message_id = $this->parent_message_id;
+        $messageModel->parent_process_id = $this->parent_process_id;
         $messageModel->save();
     }
     public function addTccSubtask($subtask){

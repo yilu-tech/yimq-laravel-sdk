@@ -15,6 +15,8 @@ abstract class Message
     public  $model;
     public $id;
     public $local_id;
+    public $parent_message_id;
+    public $parent_process_id;
     public $mockManager;
     public $delay = 5000;
     public $data;
