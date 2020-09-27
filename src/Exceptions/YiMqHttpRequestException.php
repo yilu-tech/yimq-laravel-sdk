@@ -15,6 +15,7 @@ class YiMqHttpRequestException extends GuzzleRequestException  {
         if ($e instanceof ConnectException) {
             $url = $e->getHandlerContext()['url'];
             $msg = "YiMQ can not connect $url ". $e->getMessage();
+            return parent::__construct($msg,$e->getRequest(),null,$e->getPrevious());
         } elseif ($e instanceof RequestException && $e->getCode() == 0) {
             $msg = "YiMQ cURL error url malformed $this->uri" . $e->getMessage();
         } else {
