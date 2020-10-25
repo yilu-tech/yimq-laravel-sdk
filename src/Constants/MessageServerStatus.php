@@ -6,6 +6,9 @@ namespace YiluTech\YiMQ\Constants;
 
 class MessageServerStatus
 {
-    CONST GENERAL = 'GENERAL';
-    const TRANSACTION = 'TRANSACTION';
+    const PENDING =  'PENDING';
+    const DOING = 'DOING';
+    const DONE = 'DONE';
+    const CANCELLING = 'CANCELLING';
+    const CANCELED = 'CANCELED';
 }

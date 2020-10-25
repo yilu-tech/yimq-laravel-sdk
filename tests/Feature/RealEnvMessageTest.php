@@ -95,7 +95,7 @@ class RealEnvMessageTest extends TestCase
     {
         $message = \YiMQ::transaction('user.create')->delay(10*1000)->begin();
 
-        $tccData['username'] = "name-".$this->getMessageId();
+        $tccData['username'] = "name-".microtime();
         $tccSubtask = \YiMQ::xa('user@user.create')->data($tccData)->prepare();
         $this->assertDatabaseHas($this->subtaskTable,['subtask_id'=>$tccSubtask->id]);
 
