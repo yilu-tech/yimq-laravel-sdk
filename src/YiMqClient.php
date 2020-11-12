@@ -143,10 +143,12 @@ class YiMqClient
 
 
     public function callServer($action,$context=[]){
-        \Log::debug("Client: [$this->serviceName] call server <$action>");
+//        \Log::debug("Client: [$this->serviceName] call server <$action>");
 
         $context['actor'] = $this->manager->actorName;
 
+        $logContent['action'] = $action;
+        $logContent['context'] = $context;
         try {
             $requestOptions = [
                 'json' => $context,
@@ -155,8 +157,20 @@ class YiMqClient
                 $requestOptions['timeout'] = $context['options']['timeout']/1000+1;
             }
             $result = $this->guzzleClient->post($this->actions[$action],$requestOptions);
+            \Log::info("YiMQ.Client",$logContent);
         } catch (\Exception $e) {
-            throw new YiMqHttpRequestException($e);
+
+            $exception =  new YiMqHttpRequestException($e);
+            $logContent = array_merge([
+                ['message' => $exception->getMessage()],
+                $logContent
+            ]);
+
+            if($exception->hasResponse()){
+                $logContent['response'] = $exception->getData();
+            }
+            \Log::error("YiMQ.Client",$logContent);
+            throw $exception;
         }
 
         return json_decode($result->getBody()->getContents(),true);
