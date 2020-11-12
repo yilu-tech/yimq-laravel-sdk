@@ -5,6 +5,7 @@ namespace YiluTech\YiMQ;
 
 
 
+use YiluTech\YiMQ\Constants\MessageServerStatus;
 use YiluTech\YiMQ\Constants\MessageStatus;
 use YiluTech\YiMQ\Constants\SubtaskServerType;
 use YiluTech\YiMQ\Constants\SubtaskType;
@@ -58,7 +59,8 @@ class YiMqActor
         \Log::debug($context);
         $messageModel = MessageModel::lockForUpdate()->where('message_id',$context['message_id'])->first();
         if(!isset($messageModel)){
-            throw new YiMqSystemException('Message not exists.');
+            // return ['status'=> MessageServerStatus::CANCELED];
+           throw new YiMqSystemException('Message not exists.');
         }
         if($messageModel->status == MessageStatus::DONE){
             return ['status'=>'DONE'];

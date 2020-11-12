@@ -626,12 +626,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/composer.git",
-                "reference": "14d20776a2f554eaaeaf94d9cc190dbb884463a0"
+                "reference": "53412a3299cedfc8137eb4ed7cba7d438a514c43"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/composer/zipball/14d20776a2f554eaaeaf94d9cc190dbb884463a0",
-                "reference": "14d20776a2f554eaaeaf94d9cc190dbb884463a0",
+                "url": "https://api.github.com/repos/composer/composer/zipball/53412a3299cedfc8137eb4ed7cba7d438a514c43",
+                "reference": "53412a3299cedfc8137eb4ed7cba7d438a514c43",
                 "shasum": "",
                 "mirrors": [
                     {
@@ -716,7 +716,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2020-11-10T16:05:05+00:00"
+            "time": "2020-11-11T20:14:29+00:00"
         },
         {
             "name": "composer/semver",
@@ -1052,12 +1052,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/dbal.git",
-                "reference": "32f96b171efc785ea5168ebde9397ee430fca62e"
+                "reference": "5f94000488373d45445fd6fcd495cb9a4bdbe09c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/dbal/zipball/32f96b171efc785ea5168ebde9397ee430fca62e",
-                "reference": "32f96b171efc785ea5168ebde9397ee430fca62e",
+                "url": "https://api.github.com/repos/doctrine/dbal/zipball/5f94000488373d45445fd6fcd495cb9a4bdbe09c",
+                "reference": "5f94000488373d45445fd6fcd495cb9a4bdbe09c",
                 "shasum": "",
                 "mirrors": [
                     {
@@ -1157,7 +1157,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2020-11-09T18:33:00+00:00"
+            "time": "2020-11-11T22:28:22+00:00"
         },
         {
             "name": "doctrine/event-manager",
@@ -4146,16 +4146,16 @@
         },
         {
             "name": "seld/jsonlint",
-            "version": "1.8.2",
+            "version": "1.8.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Seldaek/jsonlint.git",
-                "reference": "590cfec960b77fd55e39b7d9246659e95dd6d337"
+                "reference": "9ad6ce79c342fbd44df10ea95511a1b24dee5b57"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Seldaek/jsonlint/zipball/590cfec960b77fd55e39b7d9246659e95dd6d337",
-                "reference": "590cfec960b77fd55e39b7d9246659e95dd6d337",
+                "url": "https://api.github.com/repos/Seldaek/jsonlint/zipball/9ad6ce79c342fbd44df10ea95511a1b24dee5b57",
+                "reference": "9ad6ce79c342fbd44df10ea95511a1b24dee5b57",
                 "shasum": "",
                 "mirrors": [
                     {
@@ -4207,7 +4207,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2020-08-25T06:56:57+00:00"
+            "time": "2020-11-11T09:19:24+00:00"
         },
         {
             "name": "seld/phar-utils",
@@ -6357,12 +6357,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/translation-contracts.git",
-                "reference": "6d2dc088bc7a7dd94a85edb5de61aa810b917a26"
+                "reference": "5d449c8a6bde5ce34ce3290db5e3efa063bfa48e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/translation-contracts/zipball/6d2dc088bc7a7dd94a85edb5de61aa810b917a26",
-                "reference": "6d2dc088bc7a7dd94a85edb5de61aa810b917a26",
+                "url": "https://api.github.com/repos/symfony/translation-contracts/zipball/5d449c8a6bde5ce34ce3290db5e3efa063bfa48e",
+                "reference": "5d449c8a6bde5ce34ce3290db5e3efa063bfa48e",
                 "shasum": "",
                 "mirrors": [
                     {
@@ -6431,7 +6431,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2020-10-14T17:08:19+00:00"
+            "time": "2020-11-04T15:35:46+00:00"
         },
         {
             "name": "symfony/var-dumper",
