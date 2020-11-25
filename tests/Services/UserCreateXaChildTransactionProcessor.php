@@ -13,7 +13,7 @@ class UserCreateXaChildTransactionProcessor extends XaProcessor
 
     function beforeTransaction()
     {
-        \YiMQ::transaction('transaction.xa.processor')->setParentProcessId($this->id)->create();//创建远程事务
+        \YiMQ::transaction('transaction.xa.processor')->parentProcessId($this->id)->create();//创建远程事务
     }
 
 
