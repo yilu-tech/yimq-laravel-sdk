@@ -17,7 +17,7 @@
   "require-dev": {
     "laravel/framework": "5.8.*",
     "phpunit/phpunit": "^7.0",
-    "barryvdh/laravel-ide-helper": "^2.6@dev"
+    "barryvdh/laravel-ide-helper": "^2.8"
   },
   "autoload": {
     "psr-4": {

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1c89106108026740a3333d261f6f2a60",
+    "content-hash": "939951b5b8e6590744439b069cf2572f",
     "packages": [
         {
             "name": "guzzlehttp/guzzle",
@@ -6622,9 +6622,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "barryvdh/laravel-ide-helper": 20
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
