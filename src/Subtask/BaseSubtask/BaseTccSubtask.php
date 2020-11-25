@@ -29,7 +29,7 @@ class BaseTccSubtask extends ProcessorSubtask
             $this->prepareMessage =  $prepareResult['message'];
 
             if($this->throw){
-                throw new YiMqSubtaskPrepareException($this->prepareMessage,$this->prepareData,$this->prepareStatus);
+                throw new YiMqSubtaskPrepareException($this,$this->prepareMessage,$this->prepareData,$this->prepareStatus);
             }else{
                 return $this;
             }

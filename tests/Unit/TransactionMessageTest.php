@@ -83,6 +83,33 @@ class TransactionMessageTest extends TestCase
         $this->assertEquals($response->json('status'),"CANCELED");
     }
 
+    public function testMessageFailedNotRollback(){
+        \YiMQ::mock()->transaction('user.create')->reply(200);
+        \YiMQ::mock()->prepare()->reply(400);
+        \YiMQ::mock()->rollback()->reply(200);
+
+        $message = \YiMQ::transaction('user.create')->begin();
+        $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id]);
+        $ecSubtask1 = \YiMQ::ec('content@content.change')->data(['title'=>'new title1'])->join();
+        try{
+            \YiMQ::commit();
+        }catch(\Exception $exeption){
+            $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id,'status'=>MessageStatus::PENDING]);
+            \DB::rollBack();//只回滚本地数据库
+            $this->assertNotEmpty($exeption);
+        }
+        $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id,'status'=>MessageStatus::PENDING]);
+
+        $data['action'] = 'MESSAGE_CHECK';
+        $data['context'] = [
+            'message_id' => $message->id,
+        ];
+        $response = $this->json('POST','/yimq',$data);
+        $response->assertStatus(200);
+        $this->assertEquals($response->json('status'),"CANCELED");
+        $this->assertEquals($response->json('message'),"compensate canceled");
+    }
+
     public function testMessageRollback(){
         \YiMQ::mock()->transaction('user.create')->reply(200);
         \YiMQ::mock()->prepare()->reply(200);

@@ -9,7 +9,7 @@ use YiluTech\YiMQ\Exceptions\YiMqSystemException;
 use YiluTech\YiMQ\Models\ProcessModel;
 abstract class Processor
 {
-    protected $id;
+    public $id;
     protected $message_id;
     protected $processor;
     protected $data;
@@ -41,7 +41,8 @@ abstract class Processor
         }
     }
     protected function setAndlockSubtaskModel(){
-        $this->processModel =  ProcessModel::lockForUpdate()->find($this->id);
+//        $this->processModel =  ProcessModel::lockForUpdate()->find($this->id);
+        $this->processModel =  ProcessModel::lock('for update nowait')->find($this->id);
         if(!isset($this->processModel)){
             throw new YiMqSystemException("ProcessorSubtask $this->id not exists");
         }

@@ -27,11 +27,11 @@ abstract class XaProcessor extends BaseTccProcessor
         $this->createProcess(SubtaskStatus::PREPARING);
         //TODO:: 如果子任务已经存在就不开启事务了
         //2. 开启xa事务
-        $this->pdo->exec("set innodb_lock_wait_timeout=1");
+//        $this->pdo->exec("set innodb_lock_wait_timeout=1");
         $this->pdo->exec("XA START '$this->id'");
         try{
             $this->setAndlockSubtaskModel();
-            $this->pdo->exec("set innodb_lock_wait_timeout=5");
+//            $this->pdo->exec("set innodb_lock_wait_timeout=5");
             $prepareResult = $this->prepare();
             $this->processModel->status = SubtaskStatus::DONE;
             $this->processModel->save();
@@ -75,7 +75,7 @@ abstract class XaProcessor extends BaseTccProcessor
         try{
             $this->pdo->exec("XA ROLLBACK '$this->id'");
             $this->setSubtaskStatusCanceled();
-            return ['message'=>"succeed"];
+            return ['message'=>"canceled"];
         }catch (\Exception $e){
             if($e->getCode() != "XAE04"){
                 throw  $e;
@@ -83,17 +83,17 @@ abstract class XaProcessor extends BaseTccProcessor
 
             //如果不是xa id不存在，就锁定任务记录，判断状态是否已为done
             //$subTask = $this->setAndlockSubtaskModel();
-            $this->processModel =  ProcessModel::lockForUpdate()->find($this->id);
+            $this->processModel =  ProcessModel::lock('for update nowait')->find($this->id);
             if (!$this->processModel) {
                 return ['message'=>"not_prepare"];
             }
 
             if($this->processModel->status == SubtaskStatus::CANCELED){
-                return ['message'=>"retry_succeed"];
+                return ['message'=>"retry_canceled"];
             }
             if($this->processModel->status == SubtaskStatus::PREPARING){
                 $this->setSubtaskStatusCanceled();
-                return ['message'=>"retry_succeed"];
+                return ['message'=>"compensate_canceled"];
             }
             $status = $this->statusMap[$this->processModel->status];
             throw new YiMqSystemException("Status is $status.");
