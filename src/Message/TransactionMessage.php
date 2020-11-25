@@ -50,7 +50,7 @@ class TransactionMessage extends Message
         return  $this;
     }
 
-    function setParentProcessId($parent_process_id){
+    function parentProcessId($parent_process_id){
         $this->parent_process_id = $parent_process_id;
         return $this;
     }
