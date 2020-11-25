@@ -61,7 +61,7 @@ class YiMqLogMiddleware
         $logContent = [
             "action" => $request->input('action'),
             "context" => $request->input('context'),
-            "response" => $response->getOriginalContent(),
+//            "response" => $response->getOriginalContent(),
             "exception" =>$response->exception,
         ];
 
@@ -69,7 +69,7 @@ class YiMqLogMiddleware
         \Log::error("YiMQ.Actor.System: $exceptionMessage",$logContent);
 
         $responseContent = array_merge(
-            $response->getOriginalContent(),
+//            $response->getOriginalContent(),
             $this->convertExceptionToArray($response->exception)
         );
 

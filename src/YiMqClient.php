@@ -161,10 +161,10 @@ class YiMqClient
         } catch (\Exception $e) {
 
             $exception =  new YiMqHttpRequestException($e);
-            $logContent = array_merge([
+            $logContent = array_merge(
                 ['message' => $exception->getMessage()],
                 $logContent
-            ]);
+            );
 
             if($exception->hasResponse()){
                 $logContent['response'] = $exception->getData();

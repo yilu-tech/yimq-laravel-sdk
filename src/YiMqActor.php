@@ -56,8 +56,8 @@ class YiMqActor
     }
 
     public function messageCheck($context){
-        \Log::debug($context);
-        $messageModel = MessageModel::lockForUpdate()->where('message_id',$context['message_id'])->first();
+//        $messageModel = MessageModel::lockForUpdate()->where('message_id',$context['message_id'])->first();
+        $messageModel = MessageModel::lock('for update nowait')->where('message_id',$context['message_id'])->first();
         if(!isset($messageModel)){
             // return ['status'=> MessageServerStatus::CANCELED];
            throw new YiMqSystemException('Message not exists.');
@@ -72,7 +72,7 @@ class YiMqActor
         if($messageModel->status == MessageStatus::PENDING){
             $messageModel->status = MessageStatus::CANCELED;
             $messageModel->save();
-            return ['status'=>'CANCELED'];
+            return ['status'=>'CANCELED','message'=>'compensate canceled'];
         }
     }
 
