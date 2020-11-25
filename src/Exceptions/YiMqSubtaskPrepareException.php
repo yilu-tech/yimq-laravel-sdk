@@ -14,9 +14,11 @@ class YiMqSubtaskPrepareException extends RuntimeException
     protected $response;
     protected $result;
     protected $statusCode;
-    public function __construct($message,$result,$code)
+    public $subtask;
+    public function __construct($subtask,$message,$result,$code)
     {
         parent::__construct($message);
+        $this->subtask = $subtask;
         $this->result = $result;
         $this->statusCode = $code;
         $data = [

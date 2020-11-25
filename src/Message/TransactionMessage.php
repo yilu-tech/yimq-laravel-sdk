@@ -17,6 +17,7 @@ class TransactionMessage extends Message
     public $prepareSubtasks = [];
     public $prepared = false;
     public $callback = null;
+    public $parent_process_id = null;
     public function __construct(YiMqClient $client, $topic,$callback)
     {
         parent::__construct($client, $topic);
@@ -49,6 +50,11 @@ class TransactionMessage extends Message
         return  $this;
     }
 
+    function setParentProcessId($parent_process_id){
+        $this->parent_process_id = $parent_process_id;
+        return $this;
+    }
+
     function create()
     {
         if( $this->client->hasTransactionMessage()){
@@ -71,7 +77,8 @@ class TransactionMessage extends Message
             'topic' => $this->getTopic(),
             'type' => MessageServerType::TRANSACTION,
             'data' => $this->data,
-            'delay' => $this->delay
+            'delay' => $this->delay,
+            'parent_process_id' => $this->parent_process_id
         ];
         $mockConditions['action'] = TransactionMessageAction::BEGIN;
         if($this->mockManager->hasMocker($this,$mockConditions)){//TODO 增加一个test环境生效的判断
@@ -86,6 +93,7 @@ class TransactionMessage extends Message
 
         $messageModel = new MessageModel();
         $messageModel->message_id = $this->id;
+        $messageModel->parent_process_id = $this->parent_process_id;
         $messageModel->status = MessageStatus::PENDING;
         $messageModel->type = MessageType::TRANSACTION;
         $messageModel->topic = $this->topic;
@@ -143,7 +151,7 @@ class TransactionMessage extends Message
         $this->model->status = MessageStatus::DONE;
         $this->model->save();
     }
-    public function remoteCommit(){
+    private function remoteCommit(){
         try {
             $context['message_id'] = $this->id;
             $mockConditions['action'] = TransactionMessageAction::COMMIT;

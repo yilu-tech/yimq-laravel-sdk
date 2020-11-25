@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Tests\TestCase;
+use YiluTech\YiMQ\Constants\MessageStatus;
 use YiluTech\YiMQ\Constants\SubtaskStatus;
 class SubtaskProcessorTest extends TestCase
 {
@@ -59,10 +60,10 @@ class SubtaskProcessorTest extends TestCase
     {
         \YiMQ::mock()->transaction('transaction.xa.processor')->reply(200);
         \YiMQ::mock()->prepare()->reply(200);
-        \YiMQ::mock()->commit()->reply(200);
+//        \YiMQ::mock()->commit()->reply(200);
 
         $id = $this->getProcessId();
-        $processor = 'user.create.xa.transaction';
+        $processor = 'user.create.xa.child-transaction';
         $data['action'] = 'TRY';
         $data['context'] = [
             'type' => 'XA',
@@ -81,6 +82,7 @@ class SubtaskProcessorTest extends TestCase
         \DB::reconnect();//需要重新连接数据里否则xa的prepare状态下无法进行其他数据库操作
         //已经是PREPARED状态，但还未commit 查出状态
         $this->assertDatabaseHas($this->processModelTable,['id'=>$id,'status'=>SubtaskStatus::PREPARING]);
+        $this->assertDatabaseHas($this->messageTable,['parent_process_id'=>$id,'status'=>MessageStatus::PENDING]);
 
         $data['action'] = 'CONFIRM';
         $data['context'] = [
@@ -93,6 +95,7 @@ class SubtaskProcessorTest extends TestCase
         $response->assertStatus(200);
         $this->assertEquals($response->json()['message'],'succeed');
         $this->assertDatabaseHas($this->processModelTable,['id'=>$id,'status'=>SubtaskStatus::DONE]);
+        $this->assertDatabaseHas($this->messageTable,['parent_process_id'=>$id,'status'=>MessageStatus::DONE]);
     }
 
     public function testXaTryFailedAutoRollback()
@@ -121,17 +124,17 @@ class SubtaskProcessorTest extends TestCase
         ];
         $response = $this->post('/yimq',$data);
         $response->assertStatus(200);
-        $this->assertEquals($response->json()['message'],'retry_succeed');
+        $this->assertEquals($response->json()['message'],'compensate_canceled');
         $this->assertDatabaseHas($this->processModelTable,['id'=>$id,'status'=>SubtaskStatus::CANCELED]);
     }
 
-    public function testTransactionXaTryFailedAutoRollback()
+    public function testChildTransactionXaTryFailedAutoRollback()
     {
         \YiMQ::mock()->transaction('transaction.xa.processor')->reply(200);
         \YiMQ::mock()->prepare()->reply(200);
         \YiMQ::mock()->rollback()->reply(200);
         $id = $this->getProcessId();
-        $processor = 'user.create.xa.transaction';
+        $processor = 'user.create.xa.child-transaction';
         $data['action'] = 'TRY';
         $data['context'] = [
             'type' => 'XA',
@@ -145,6 +148,7 @@ class SubtaskProcessorTest extends TestCase
         ];
         $response = $this->json('POST','/yimq',$data);
         $response->assertStatus(400);
+        $this->assertDatabaseHas($this->messageTable,['parent_process_id'=>$id,'status'=>MessageStatus::CANCELED]);
     }
 
 
@@ -182,13 +186,13 @@ class SubtaskProcessorTest extends TestCase
         //第1次Cancel
         $response = $this->post('/yimq',$data);
         $response->assertStatus(200);
-        $this->assertEquals($response->json()['message'],'succeed');
+        $this->assertEquals($response->json()['message'],'canceled');
         $this->assertDatabaseHas($this->processModelTable,['id'=>$id,'status'=>SubtaskStatus::CANCELED]);
 
         //第2次Cancel
         $response = $this->post('/yimq',$data);
         $response->assertStatus(200);
-        $this->assertEquals($response->json()['message'],'retry_succeed');
+        $this->assertEquals($response->json()['message'],'retry_canceled');
 
         //cancel后尝试confirm
         $data['action'] = 'CONFIRM';

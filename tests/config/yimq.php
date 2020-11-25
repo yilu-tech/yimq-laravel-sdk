@@ -19,7 +19,7 @@ return [
      */
     'processors'=>[
         'user.create' => \Tests\Services\UserCreate::class,
-        'user.create.xa.transaction' => \Tests\Services\UserCreateXaTransaction::class,
+        'user.create.xa.child-transaction' => \Tests\Services\UserCreateXaChildTransactionProcessor::class,
         'user.tcc_create' => \Tests\Services\UserTccCreate::class,
         'user.update' => \Tests\Services\UserUpdate::class,
         'user.update.ec.manual' => \Tests\Services\UserUpdateEcManual::class,

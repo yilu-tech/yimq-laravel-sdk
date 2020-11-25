@@ -75,7 +75,7 @@ abstract class XaProcessor extends BaseTccProcessor
         try{
             $this->pdo->exec("XA ROLLBACK '$this->id'");
             $this->setSubtaskStatusCanceled();
-            return ['message'=>"succeed"];
+            return ['message'=>"canceled"];
         }catch (\Exception $e){
             if($e->getCode() != "XAE04"){
                 throw  $e;
@@ -89,11 +89,11 @@ abstract class XaProcessor extends BaseTccProcessor
             }
 
             if($this->processModel->status == SubtaskStatus::CANCELED){
-                return ['message'=>"retry_succeed"];
+                return ['message'=>"retry_canceled"];
             }
             if($this->processModel->status == SubtaskStatus::PREPARING){
                 $this->setSubtaskStatusCanceled();
-                return ['message'=>"retry_succeed"];
+                return ['message'=>"compensate_canceled"];
             }
             $status = $this->statusMap[$this->processModel->status];
             throw new YiMqSystemException("Status is $status.");
