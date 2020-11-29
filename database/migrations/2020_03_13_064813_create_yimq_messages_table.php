@@ -16,7 +16,7 @@ class CreateYimqMessagesTable extends Migration
         Schema::create('yimq_messages', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('message_id')->nullable()->unique();
-            $table->unsignedBigInteger('parent_process_id')->nullable()->index();
+            $table->string('parent_subtask',50)->nullable()->index();
             $table->string('topic',50)->nullable(false)->index();
             $table->unsignedTinyInteger('type')->nullable(false);
             $table->json('data')->nullable();

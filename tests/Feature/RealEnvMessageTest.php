@@ -240,7 +240,8 @@ class RealEnvMessageTest extends TestCase
             $this->assertEquals($e->getResult(),["message"=>"mock failed"]);
             $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id,'status'=>MessageStatus::PENDING]);//检查message
             $this->assertDatabaseHas($this->processModelTable,['id'=>$e->subtask->id,'status'=>SubtaskStatus::PREPARING]);
-            $this->assertDatabaseHas($this->messageTable,['parent_process_id'=>$e->subtask->id,'status'=>MessageStatus::CANCELED]);//检查子message
+            $parent_subtask = 'user'.'@'.$e->subtask->id;
+            $this->assertDatabaseHas($this->messageTable,['parent_subtask'=> $parent_subtask,'status'=>MessageStatus::CANCELED]);//检查子message
         }
         \DB::reconnect();
         sleep(2);
@@ -261,7 +262,8 @@ class RealEnvMessageTest extends TestCase
             $this->assertEquals($e->getResult(),["message"=>"mock failed"]);
             $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id,'status'=>MessageStatus::PENDING]);//检查message
             $this->assertDatabaseHas($this->processModelTable,['id'=>$e->subtask->id,'status'=>SubtaskStatus::PREPARING]);
-            $this->assertDatabaseHas($this->messageTable,['parent_process_id'=>$e->subtask->id,'status'=>MessageStatus::CANCELED]);//检查子message
+            $parent_subtask = 'user'.'@'.$e->subtask->id;
+            $this->assertDatabaseHas($this->messageTable,['parent_subtask'=>$parent_subtask,'status'=>MessageStatus::CANCELED]);//检查子message
             \YiMQ::rollback();
         }
         \DB::reconnect();
