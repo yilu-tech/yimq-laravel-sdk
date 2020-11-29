@@ -10,6 +10,7 @@ use YiluTech\YiMQ\Models\ProcessModel;
 abstract class Processor
 {
     public $id;
+    public $producer;
     protected $message_id;
     protected $processor;
     protected $data;
@@ -29,6 +30,7 @@ abstract class Processor
 
     protected function setContextToThis($context){
         $this->id = $context['id'];
+        $this->producer = isset($context['producer'])? $context['producer'] : 'test';
         $this->message_id = $context['message_id'];
         $this->processor = $context['processor'];
         $this->data = $context['data'];
@@ -59,6 +61,7 @@ abstract class Processor
     protected function createProcess($status){
         $subtaskModel = new ProcessModel();
         $subtaskModel->id = $this->id;
+        $subtaskModel->producer = $this->producer;
         $subtaskModel->message_id = $this->message_id;
         $subtaskModel->type = $this->type;
         $subtaskModel->processor = $this->processor;

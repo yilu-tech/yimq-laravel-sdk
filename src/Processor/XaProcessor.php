@@ -22,9 +22,9 @@ abstract class XaProcessor extends BaseTccProcessor
     }
 
     public function _runTry($context){
-        $this->beforeTransaction();
         //1. 本地记录subtask
         $this->createProcess(SubtaskStatus::PREPARING);
+        $this->beforeTransaction();
         //TODO:: 如果子任务已经存在就不开启事务了
         //2. 开启xa事务
 //        $this->pdo->exec("set innodb_lock_wait_timeout=1");

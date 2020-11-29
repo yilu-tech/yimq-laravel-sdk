@@ -67,6 +67,7 @@ class SubtaskProcessorTest extends TestCase
         $data['action'] = 'TRY';
         $data['context'] = [
             'type' => 'XA',
+            'producer' => 'user',
             'processor' => $processor,
             'id' => $id,
             'message_id' => '1',
@@ -82,7 +83,8 @@ class SubtaskProcessorTest extends TestCase
         \DB::reconnect();//需要重新连接数据里否则xa的prepare状态下无法进行其他数据库操作
         //已经是PREPARED状态，但还未commit 查出状态
         $this->assertDatabaseHas($this->processModelTable,['id'=>$id,'status'=>SubtaskStatus::PREPARING]);
-        $this->assertDatabaseHas($this->messageTable,['parent_process_id'=>$id,'status'=>MessageStatus::PENDING]);
+        $parent_subtask = "user@$id";
+        $this->assertDatabaseHas($this->messageTable,['parent_subtask'=>$parent_subtask,'status'=>MessageStatus::PENDING]);
 
         $data['action'] = 'CONFIRM';
         $data['context'] = [
@@ -91,11 +93,12 @@ class SubtaskProcessorTest extends TestCase
             'processor' => $processor,
         ];
         //第1次confirm
-        $response = $this->post('/yimq',$data);
+
+        $response = $this->json('POST','/yimq',$data);
         $response->assertStatus(200);
         $this->assertEquals($response->json()['message'],'succeed');
         $this->assertDatabaseHas($this->processModelTable,['id'=>$id,'status'=>SubtaskStatus::DONE]);
-        $this->assertDatabaseHas($this->messageTable,['parent_process_id'=>$id,'status'=>MessageStatus::DONE]);
+        $this->assertDatabaseHas($this->messageTable,['parent_subtask'=>$parent_subtask,'status'=>MessageStatus::DONE]);
     }
 
     public function testXaTryFailedAutoRollback()
@@ -138,6 +141,7 @@ class SubtaskProcessorTest extends TestCase
         $data['action'] = 'TRY';
         $data['context'] = [
             'type' => 'XA',
+            'producer' => 'user',
             'processor' => $processor,
             'id' => $id,
             'message_id' => '1',
@@ -148,7 +152,7 @@ class SubtaskProcessorTest extends TestCase
         ];
         $response = $this->json('POST','/yimq',$data);
         $response->assertStatus(400);
-        $this->assertDatabaseHas($this->messageTable,['parent_process_id'=>$id,'status'=>MessageStatus::CANCELED]);
+        $this->assertDatabaseHas($this->messageTable,['parent_subtask'=>"user@$id",'status'=>MessageStatus::CANCELED]);
     }
 
 
