@@ -289,6 +289,7 @@ class YiMqActorClearTest extends TestCase
         $processModel =  new ProcessModel();
         $id = $this->getProcessId();
         $processModel->id = $id;
+        $processModel->producer = 'test';
         $processModel->message_id = $this->getMessageId();
         $processModel->type = SubtaskType::EC;
         $processModel->data = [];

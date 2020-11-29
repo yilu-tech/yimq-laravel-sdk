@@ -11,6 +11,7 @@ class ProcessModel extends Model
     protected $table = 'yimq_processes';
     protected $fillable = [
         'id',
+        'producer',
         'message_id',
         'type',
         'processor',
