@@ -6,7 +6,7 @@ namespace Tests\Unit;
 use Tests\TestCase;
 use YiluTech\YiMQ\Constants\MessageStatus;
 use YiluTech\YiMQ\Constants\MessageType;
-use YiluTech\YiMQ\Constants\SubtaskStatus;
+use YiluTech\YiMQ\Constants\ProcessStatus;
 use YiluTech\YiMQ\Constants\SubtaskType;
 use YiluTech\YiMQ\Models\Message as MessageModel;
 use YiluTech\YiMQ\Models\Subtask as SubtaskModel;
@@ -130,10 +130,11 @@ class YiMqActorClearTest extends TestCase
         $pdo = \DB::connection()->getPdo();
 
         $doneMessage1 =$this->createMessage(MessageStatus::DONE);
-        $doneMessage1Subtask1 = $this->createSubtask($doneMessage1->message_id,SubtaskStatus::DONE);
-        $doneMessage1Subtask2 = $this->createSubtask($doneMessage1->message_id,SubtaskStatus::DONE);
+        $doneMessage1Subtask1 = $this->createSubtask($doneMessage1->message_id,ProcessStatus::DONE);
+        $doneMessage1Subtask2 = $this->createSubtask($doneMessage1->message_id,ProcessStatus::DONE);
+
         $doneMessage2 =$this->createMessage(MessageStatus::DONE);
-        $doneMessage2Subtask1 = $this->createSubtask($doneMessage2->message_id,SubtaskStatus::DONE);
+        $doneMessage2Subtask1 = $this->createSubtask($doneMessage2->message_id,ProcessStatus::DONE);
 
         try {
 
@@ -166,8 +167,8 @@ class YiMqActorClearTest extends TestCase
     }
 
     public function testClearProcessSuccess(){
-        $process1 = $this->createProcess(SubtaskStatus::DONE);
-        $process2 = $this->createProcess(SubtaskStatus::CANCELED);
+        $process1 = $this->createProcess(ProcessStatus::DONE);
+        $process2 = $this->createProcess(ProcessStatus::CANCELED);
         $context = [
             'done_message_ids' => [],
             'canceled_message_ids' => [],
@@ -185,11 +186,11 @@ class YiMqActorClearTest extends TestCase
 
         $processIds = [];
         for ($i =0;$i<11;$i++){// 不用存储过程的话  process where in 条件大于11的时候，就会失败，所以采用了存储过程一个个删除
-            $process =$this->createProcess(SubtaskStatus::DONE);
+            $process =$this->createProcess(ProcessStatus::DONE);
             $processIds[] = $process->id;
         }
 
-        $this->assertDatabaseHas($this->processModelTable,['id'=>$processIds[0],"status"=>SubtaskStatus::DONE]);
+        $this->assertDatabaseHas($this->processModelTable,['id'=>$processIds[0],"status"=>ProcessStatus::DONE]);
 
         try {
 
@@ -222,14 +223,14 @@ class YiMqActorClearTest extends TestCase
         $xid = "clear_test_1";
         $pdo = \DB::connection()->getPdo();
 
-        $process1 =$this->createProcess(SubtaskStatus::CANCELED);
-        $this->assertDatabaseHas($this->processModelTable,['id'=>$process1->id,"status"=>SubtaskStatus::CANCELED]);
+        $process1 =$this->createProcess(ProcessStatus::CANCELED);
+        $this->assertDatabaseHas($this->processModelTable,['id'=>$process1->id,"status"=>ProcessStatus::CANCELED]);
 
         try {
 
             $pdo->exec("XA START '$xid'");
-            $process2 =$this->createProcess(SubtaskStatus::CANCELED);
-            $this->assertDatabaseHas($this->processModelTable,['id'=>$process2->id,"status"=>SubtaskStatus::CANCELED]);
+            $process2 =$this->createProcess(ProcessStatus::CANCELED);
+            $this->assertDatabaseHas($this->processModelTable,['id'=>$process2->id,"status"=>ProcessStatus::CANCELED]);
             $pdo->exec("XA end '$xid'");
             $pdo->exec("XA PREPARE '$xid'");
             //actor clear会开启新的事务，所以把db重新连接，建立新的session

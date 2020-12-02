@@ -9,7 +9,7 @@ use YiluTech\YiMQ\Processor\EcProcessor;
 use YiluTech\YiMQ\Processor\LstrProcessor;
 use YiluTech\YiMQ\Processor\XaProcessor;
 
-class UserUpdateListener extends LstrProcessor
+class UserUpdateListenerProcessor extends LstrProcessor
 {
 
 

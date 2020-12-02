@@ -5,7 +5,7 @@ namespace YiluTech\YiMQ\Services;
 
 
 use YiluTech\YiMQ\Constants\MessageStatus;
-use YiluTech\YiMQ\Constants\SubtaskStatus;
+use YiluTech\YiMQ\Constants\ProcessStatus;
 use YiluTech\YiMQ\Exceptions\YiMqSystemException;
 use YiluTech\YiMQ\Models\Message as MessageModel;
 use YiluTech\YiMQ\Models\ProcessModel;
@@ -49,7 +49,7 @@ class YiMqActorClear
         }
         $process_ids_string = implode(',',$process_ids);
         $processTableName = (new ProcessModel())->getTable();
-        $clearStatus = implode(',',[SubtaskStatus::DONE,SubtaskStatus::CANCELED]);
+        $clearStatus = implode(',',[ProcessStatus::DONE,ProcessStatus::CANCELED]);
         $canClearProcesses = \DB::select("select * from $processTableName where id in (". $process_ids_string .") and status in (". $clearStatus .") for update skip locked");
         $canClearProcessIds = array_column($canClearProcesses,"id");
         //通过数组取差集得到在数据库不能删除的process,这里边包含 被锁定的、状态不对的，不存在的

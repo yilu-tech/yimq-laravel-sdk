@@ -68,12 +68,18 @@ class YiMqActor
         if($messageModel->status == MessageStatus::CANCELED){
             return ['status'=>'CANCELED'];
         }
+        //tcc嵌套子事务的message会用到prepared状态
+        if($messageModel->status == MessageStatus::PREPARED){
+            return ['status'=>MessageServerStatus::PREPARED];
+        }
         //如果lockForUpdate能拿到message且处于PENDING状态，说明本地回滚后设置 message状态失败，check的时候补偿状态
         if($messageModel->status == MessageStatus::PENDING){
             $messageModel->status = MessageStatus::CANCELED;
             $messageModel->save();
             return ['status'=>'CANCELED','message'=>'compensate canceled'];
         }
+
+        throw  new YiMqSystemException('message status unknown');
     }
 
 

@@ -106,7 +106,7 @@ class TransactionMessage extends Message
         array_push($this->prepareSubtasks,$subtask);
     }
 
-    private function prepare(){
+    public function prepare(){
         $context = [
             'message_id' => $this->id,
             'prepare_subtasks' => []
@@ -137,21 +137,17 @@ class TransactionMessage extends Message
         }
     }
 
-    public function commit(){
 
-        $this->localCommmit();
+    public function commit(){
+        $this->prepare();
+        $this->statusTo(MessageStatus::DONE);
         \DB::commit();
         $this->client->clearTransactionMessage();
         $this->remoteCommit();
         return $this;
     }
 
-    public function localCommmit(){
-        $this->prepare();
-        $this->model->status = MessageStatus::DONE;
-        $this->model->save();
-    }
-    private function remoteCommit(){
+    public function remoteCommit(){
         try {
             $context['message_id'] = $this->id;
             $mockConditions['action'] = TransactionMessageAction::COMMIT;
@@ -170,7 +166,7 @@ class TransactionMessage extends Message
         \DB::rollBack();
         $this->client->clearTransactionMessage();
         //本地rollback后，如果远程commit错误，忽略错误,让服务端回查来状态来确认
-        
+        $this->statusTo(MessageStatus::CANCELED);
         $this->remoteRollback();
     
 
@@ -179,9 +175,6 @@ class TransactionMessage extends Message
     public function remoteRollback(){
 
         try {
-            //TODO::添加一个mock锚点，测试rollback后修改message状态失败
-            $this->model->status = MessageStatus::CANCELED;
-            $this->model->save();
             $context['message_id'] = $this->id;
             $mockConditions['action'] = TransactionMessageAction::ROLLBACK;
             if($this->mockManager->hasMocker($this,$mockConditions)){//TODO 增加一个test环境生效的判断
@@ -192,6 +185,12 @@ class TransactionMessage extends Message
         }catch (\Exception $e){
             \Log::error($e);
         }
+    }
+
+    public function statusTo($status){
+        $this->model->status = $status;
+        $this->model->save();
+        return $this;
     }
 
 

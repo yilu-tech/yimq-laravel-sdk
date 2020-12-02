@@ -10,7 +10,7 @@ use YiluTech\YiMQ\Processor\EcProcessor;
 use YiluTech\YiMQ\Processor\TccProcessor;
 use YiluTech\YiMQ\Processor\XaProcessor;
 
-class UserTccCreate extends TccProcessor
+class UserTccCreateProcessor extends TccProcessor
 {
     public $status=[
         'pending' => 0,

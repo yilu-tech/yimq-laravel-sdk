@@ -8,7 +8,7 @@ use Tests\App\Models\UserModel;
 use YiluTech\YiMQ\Processor\EcProcessor;
 use YiluTech\YiMQ\Processor\XaProcessor;
 
-class UserUpdate extends EcProcessor
+class UserEcUpdateProcessor extends EcProcessor
 {
 
 

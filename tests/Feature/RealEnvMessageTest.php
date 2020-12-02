@@ -7,7 +7,7 @@ namespace Tests\Feature;
 use Tests\App\Models\UserModel;
 use Tests\TestCase;
 use YiluTech\YiMQ\Constants\MessageStatus;
-use YiluTech\YiMQ\Constants\SubtaskStatus;
+use YiluTech\YiMQ\Constants\ProcessStatus;
 use YiluTech\YiMQ\Exceptions\YiMqHttpRequestException;
 use YiluTech\YiMQ\Exceptions\YiMqSubtaskPrepareException;
 
@@ -25,11 +25,11 @@ class RealEnvMessageTest extends TestCase
         $ecData['id'] = $userModel->id;
         $ecData['username'] = $userModel->username.'.change';
 
-        $message = \YiMQ::transaction('user.create')->begin();
+        $message = \YiMQ::transaction('user.xa.create')->begin();
         $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id]);
 
 
-        $ecSubtask = \YiMQ::ec('user@user.update')->data($ecData)->attempt(11)->join();
+        $ecSubtask = \YiMQ::ec('user@user.ec.update')->data($ecData)->attempt(11)->join();
         \YiMQ::commit();
         $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id,'status'=>MessageStatus::DONE]);
         sleep(1);
@@ -42,12 +42,12 @@ class RealEnvMessageTest extends TestCase
 
         $id = $this->getSubtaskId();
 
-        $message = \YiMQ::transaction('user.create')->begin();
+        $message = \YiMQ::transaction('user.xa.create')->begin();
         $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id]);
 
         $ecData['id'] = $userModel->id;
         $ecData['username'] = $userModel->username.'.change';
-        $ecSubtask = \YiMQ::ec('user@user.update')->data($ecData)->join();
+        $ecSubtask = \YiMQ::ec('user@user.ec.update')->data($ecData)->join();
 
         \YiMQ::rollback();
         $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id,'status'=>MessageStatus::CANCELED]);
@@ -57,18 +57,19 @@ class RealEnvMessageTest extends TestCase
     public function testAddXaSubtask()
     {
         $tccData['username'] = "name-".$this->getUserId();
-        $message = \YiMQ::transaction('user.create')->delay(10*1000)->begin();
+        $message = \YiMQ::transaction('user.xa.create')->delay(10*1000)->begin();
 
 
-        $tccSubtask = \YiMQ::xa('user@user.create')->data($tccData)->prepare();
+        $tccSubtask = \YiMQ::xa('user@user.xa.create')->data($tccData)->prepare();
         $this->assertDatabaseHas($this->subtaskTable,['subtask_id'=>$tccSubtask->id]);
         //通过行锁确定是否在processor中产生数据
+        $code = null;
         try {
-            \DB::getPdo()->exec("set innodb_lock_wait_timeout=1");
-            UserModel::create(['username'=>$tccData['username']]);
+            UserModel::where(['username'=>$tccData['username']])->lock('for update no wait')->first();
         }catch (\Exception $e){
-            $this->assertEquals($e->getCode(),'HY000');
+            $code = $e->getCode();
         }
+        $this->assertEquals($code,'42000');
 
         \YiMQ::commit();
         //暂停等待协调器去confirm
@@ -81,8 +82,8 @@ class RealEnvMessageTest extends TestCase
         $tccData['username'] = "name-".$this->getUserId();
         \YiMQ::mock()->commit()->reply(400);
 
-        $message = \YiMQ::transaction('user.create')->delay(1*1000)->data([])->begin();
-        $tccSubtask = \YiMQ::xa('user@user.create')->data($tccData)->prepare();
+        $message = \YiMQ::transaction('user.xa.create')->delay(1*1000)->data([])->begin();
+        $tccSubtask = \YiMQ::xa('user@user.xa.create')->data($tccData)->prepare();
         $this->assertDatabaseHas($this->subtaskTable,['subtask_id'=>$tccSubtask->id]);
         $errorMsg = null;
         try {
@@ -100,19 +101,21 @@ class RealEnvMessageTest extends TestCase
 
     public function testAddXaSubtaskRollback()
     {
-        $message = \YiMQ::transaction('user.create')->delay(10*1000)->begin();
+        $message = \YiMQ::transaction('user.xa.create')->delay(10*1000)->begin();
 
         $tccData['username'] = "name-".microtime();
-        $tccSubtask = \YiMQ::xa('user@user.create')->data($tccData)->prepare();
+        $tccSubtask = \YiMQ::xa('user@user.xa.create')->data($tccData)->prepare();
         $this->assertDatabaseHas($this->subtaskTable,['subtask_id'=>$tccSubtask->id]);
 
-        //通过行锁确定是否在processor中产生数据
+        $code = null;
         try {
-            \DB::getPdo()->exec("set innodb_lock_wait_timeout=1");
-            UserModel::create(['username'=>$tccData['username']]);
+            UserModel::where(['username'=>$tccData['username']])->lock('for update no wait')->first();
         }catch (\Exception $e){
-            $this->assertEquals($e->getCode(),'HY000');
+            $code = $e->getCode();
         }
+        $this->assertEquals($code,'42000');
+
+
 
         \YiMQ::rollback();
         //通过插入数据确定username的杭锁已经释放
@@ -121,10 +124,10 @@ class RealEnvMessageTest extends TestCase
     public function testAddXaSubtaskRemoteRollbackFaildTimeoutCheck()
     {
         \YiMQ::mock()->rollback()->reply(500);
-        $message = \YiMQ::transaction('user.create')->delay(2*1000)->data([])->begin();
+        $message = \YiMQ::transaction('user.xa.create')->delay(2*1000)->data([])->begin();
 
         $tccData['username'] = "name-".$this->getMessageId();
-        $tccSubtask = \YiMQ::xa('user@user.create')->data($tccData)->prepare();
+        $tccSubtask = \YiMQ::xa('user@user.xa.create')->data($tccData)->prepare();
         $this->assertDatabaseHas($this->subtaskTable,['subtask_id'=>$tccSubtask->id]);
 
         $errorMsg = null;
@@ -155,11 +158,11 @@ class RealEnvMessageTest extends TestCase
 
 
 
-        $message = \YiMQ::transaction('user.create')->delay(10*1000)->begin();
-        $tccSubtask1 = \YiMQ::xa('user@user.create')->data($tccData1)->prepare();
+        $message = \YiMQ::transaction('user.xa.create')->delay(10*1000)->begin();
+        $tccSubtask1 = \YiMQ::xa('user@user.xa.create')->data($tccData1)->prepare();
 
         try{
-            $tccSubtask2 = \YiMQ::xa('user@user.create')->data($tccData2)-> prepare();
+            $tccSubtask2 = \YiMQ::xa('user@user.xa.create')->data($tccData2)-> prepare();
         }catch (\Exception $e){
             \YiMQ::rollback();
         }
@@ -179,11 +182,11 @@ class RealEnvMessageTest extends TestCase
 
 
 
-        $message = \YiMQ::transaction('user.create')->delay(1*1000)->begin();
-        $tccSubtask1 = \YiMQ::xa('user@user.create')->data($tccData1)->prepare();
+        $message = \YiMQ::transaction('user.xa.create')->delay(1*1000)->begin();
+        $tccSubtask1 = \YiMQ::xa('user@user.xa.create')->data($tccData1)->prepare();
 
         try{
-            $tccSubtask2 = \YiMQ::xa('user@user.create')->data($tccData2)->prepare();
+            $tccSubtask2 = \YiMQ::xa('user@user.xa.create')->data($tccData2)->prepare();
         }catch (\Exception $e){
             \DB::reconnect();//释放锁
             sleep(2);
@@ -198,7 +201,7 @@ class RealEnvMessageTest extends TestCase
 
 
 
-        $message = \YiMQ::transaction('user.create')->begin();
+        $message = \YiMQ::transaction('user.xa.create')->begin();
         $data['username'] = 'jack';
         $data['timeout'] = 500;
         $tccSubtask = \YiMQ::tcc('user@user.tcc_create')
@@ -220,7 +223,7 @@ class RealEnvMessageTest extends TestCase
         $message = \YiMQ::transaction('user.create.xa.child-transaction')->begin();
         $xaSubtask = \YiMQ::xa('user@user.create.xa.child-transaction')->data($data)->prepare();
         \YiMQ::commit();
-        sleep(1);
+        sleep(2);
         $this->assertDatabaseHas($this->userModelTable,['username'=> $data['username'].'.update' ]);
     }
 
@@ -239,14 +242,14 @@ class RealEnvMessageTest extends TestCase
             $xaSubtask = $e->subtask;
             $this->assertEquals($e->getResult(),["message"=>"mock failed"]);
             $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id,'status'=>MessageStatus::PENDING]);//检查message
-            $this->assertDatabaseHas($this->processModelTable,['id'=>$e->subtask->id,'status'=>SubtaskStatus::PREPARING]);
+            $this->assertDatabaseHas($this->processModelTable,['id'=>$e->subtask->id,'status'=>ProcessStatus::PREPARING]);
             $parent_subtask = 'user'.'@'.$e->subtask->id;
             $this->assertDatabaseHas($this->messageTable,['parent_subtask'=> $parent_subtask,'status'=>MessageStatus::CANCELED]);//检查子message
         }
         \DB::reconnect();
         sleep(2);
         $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id,'status'=>MessageStatus::CANCELED]);
-        $this->assertDatabaseHas($this->processModelTable,['id'=>$xaSubtask->id,'status'=>SubtaskStatus::CANCELED]);
+        $this->assertDatabaseHas($this->processModelTable,['id'=>$xaSubtask->id,'status'=>ProcessStatus::CANCELED]);
     }
 
     public  function  testXaChildTransactionRollback(){
@@ -261,7 +264,7 @@ class RealEnvMessageTest extends TestCase
             $xaSubtask = $e->subtask;
             $this->assertEquals($e->getResult(),["message"=>"mock failed"]);
             $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id,'status'=>MessageStatus::PENDING]);//检查message
-            $this->assertDatabaseHas($this->processModelTable,['id'=>$e->subtask->id,'status'=>SubtaskStatus::PREPARING]);
+            $this->assertDatabaseHas($this->processModelTable,['id'=>$e->subtask->id,'status'=>ProcessStatus::PREPARING]);
             $parent_subtask = 'user'.'@'.$e->subtask->id;
             $this->assertDatabaseHas($this->messageTable,['parent_subtask'=>$parent_subtask,'status'=>MessageStatus::CANCELED]);//检查子message
             \YiMQ::rollback();
@@ -269,7 +272,7 @@ class RealEnvMessageTest extends TestCase
         \DB::reconnect();
         $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id,'status'=>MessageStatus::CANCELED]);
         sleep(1);
-        $this->assertDatabaseHas($this->processModelTable,['id'=>$xaSubtask->id,'status'=>SubtaskStatus::CANCELED]);
+        $this->assertDatabaseHas($this->processModelTable,['id'=>$xaSubtask->id,'status'=>ProcessStatus::CANCELED]);
     }
 
 

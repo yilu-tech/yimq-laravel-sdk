@@ -8,7 +8,7 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Tests\App\Models\UserModel;
 use YiluTech\YiMQ\Processor\XaProcessor;
 
-class UserCreate extends XaProcessor
+class UserXaCreateProcessor extends XaProcessor
 {
 
     function prepare()
