@@ -4,7 +4,7 @@
 namespace YiluTech\YiMQ\Subtask;
 
 
-use YiluTech\YiMQ\Constants\SubtaskStatus;
+use YiluTech\YiMQ\Constants\ProcessStatus;
 use YiluTech\YiMQ\Constants\SubtaskType;
 use YiluTech\YiMQ\Models\Subtask as SubtaskModel;
 use YiluTech\YiMQ\Subtask\BaseSubtask\BaseTccSubtask;

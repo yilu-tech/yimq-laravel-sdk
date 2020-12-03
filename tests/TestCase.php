@@ -73,4 +73,8 @@ abstract class TestCase extends BaseTestCase
         list($usec, $sec) = explode(" ", microtime());
         return $sec;
     }
+
+    function sleepMs($milliseconds){
+        usleep(1000*$milliseconds);
+    }
 }

@@ -10,7 +10,7 @@ use YiluTech\YiMQ\YiMqMessageBuilder;
 
 abstract class Message
 {
-    protected $client;
+    public $client;
     public $topic;
     public  $model;
     public $id;

@@ -4,8 +4,9 @@
 namespace YiluTech\YiMQ\Processor\BaseProcessor;
 
 
-use YiluTech\YiMQ\Constants\SubtaskStatus;
+use YiluTech\YiMQ\Constants\ProcessStatus;
 use YiluTech\YiMQ\Exceptions\YiMqSystemException;
+use YiluTech\YiMQ\Message\TransactionMessage;
 use YiluTech\YiMQ\Models\ProcessModel;
 abstract class Processor
 {
@@ -20,13 +21,15 @@ abstract class Processor
     public $context;
     private $_validator;
     protected $statusMap = [
-        SubtaskStatus::PREPARING => 'PREPARING',
-        SubtaskStatus::PREPARED => 'PREPARED',
-        SubtaskStatus::DOING => 'DOING',
-        SubtaskStatus::DONE => 'DONE',
-        SubtaskStatus::CANCELLING => 'CANCELLING',
-        SubtaskStatus::CANCELED => 'CANCELED',
+        ProcessStatus::PREPARING => 'PREPARING',
+        ProcessStatus::PREPARED => 'PREPARED',
+        ProcessStatus::DOING => 'DOING',
+        ProcessStatus::DONE => 'DONE',
+        ProcessStatus::CANCELLING => 'CANCELLING',
+        ProcessStatus::CANCELED => 'CANCELED',
     ];
+    public $childTransactionTopic = null;
+    public $childTransaction = null;
 
     protected function setContextToThis($context){
         $this->id = $context['id'];
@@ -71,7 +74,7 @@ abstract class Processor
     }
 
     protected function setSubtaskStatusCanceled(){
-        ProcessModel::where('id',$this->id)->update(['status'=>SubtaskStatus::CANCELED]);
+        ProcessModel::where('id',$this->id)->update(['status'=>ProcessStatus::CANCELED]);
     }
 
     protected function beforeTransaction(){
@@ -93,5 +96,54 @@ abstract class Processor
 
     public function getOptions(){
         return [];
+    }
+
+
+    protected function childTransactionInit(){
+        if(!$this->childTransactionTopic){
+            return;
+        }
+
+        $this->childTransaction = \YiMQ::transaction($this->childTransactionTopic)->parentSubtask($this);
+        $this->childTransaction($this->childTransaction);
+        $this->childTransaction->create();
+    }
+    protected function childTransactionStart(){
+        if($this->childTransaction){
+            \YiMQ::transaction()->start();
+        }
+    }
+
+    protected function childTransactionPrepare(){
+        if($this->childTransaction){
+            \YiMQ::transaction()->prepare();
+        }
+    }
+
+    protected function childTransactionRestore($processModel,$messageStatus){
+        if($this->childTransactionTopic){
+            $this->childTransaction = \YiMQ::restoreByParentSubtask($processModel,$messageStatus);
+        }
+    }
+    protected function childTransactionStatusTo($messageStatus){
+        if($this->childTransaction){
+            \YiMQ::transaction()->statusTo($messageStatus);
+        }
+    }
+
+    protected function childTransactionRemoteCommit(){
+        if($this->childTransaction){
+            \YiMQ::transaction()->remoteCommit();
+        }
+    }
+
+    protected function childTransactionRemoteRollback(){
+        if($this->childTransaction){
+            \YiMQ::transaction()->remoteRollback();
+        }
+    }
+
+    public function childTransaction(TransactionMessage $transaction){
+
     }
 }
