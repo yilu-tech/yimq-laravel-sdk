@@ -181,7 +181,7 @@ class RealEnvChildMessageTest extends TestCase
         $parent_subtask = 'user'.'@'.$xaSubtask->id;
         $childMessage = MessageModel::where(['parent_subtask'=>$parent_subtask])->first();
         $this->assertNull($childMessage);
-        $this->sleepMs(500);
+        $this->sleepMs(800);
 
         $childMessage = MessageModel::where(['parent_subtask'=>$parent_subtask])->first();
         $this->assertEquals($childMessage->status,MessageStatus::DONE);
