@@ -27,7 +27,7 @@ class YiMqActor
     }
 
     public function try($context){
-        \Log::debug('try',$context);
+//        \Log::debug('try',$context);
         $processor = $this->getProcessor($context);
         if($processor == null){
             $processor = $context['processor'];
@@ -38,7 +38,7 @@ class YiMqActor
     }
 
     public function confirm($context){
-        \Log::debug('confirm',$context);
+//        \Log::debug('confirm',$context);
         $processor = $this->getProcessor($context);
         if($processor == null){
             $processor = $context['processor'];

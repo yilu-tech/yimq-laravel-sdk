@@ -89,7 +89,7 @@ class TransactionMessage extends Message
 
     }
     private function createLocalTransactionRecord(){
-        \Log::debug('TransactionMessage ['.$this->client->serviceName.'] -向本地数据库记录事物 '. $this->id);
+//        \Log::debug('TransactionMessage ['.$this->client->serviceName.'] -向本地数据库记录事物 '. $this->id);
 
         $messageModel = new MessageModel();
         $messageModel->message_id = $this->id;
