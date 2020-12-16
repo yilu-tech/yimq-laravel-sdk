@@ -18,11 +18,11 @@ class TransactionMessageTest extends TestCase
     }
 
     public function testMessageCommit(){
-        \YiMQ::mock()->transaction('user.create')->reply(200);
+        \YiMQ::mock()->transaction('user.xa.create')->reply(200);
         \YiMQ::mock()->prepare()->reply(200);
         \YiMQ::mock()->commit()->reply(200);
 
-        $message = \YiMQ::transaction('user.create')->begin();
+        $message = \YiMQ::transaction('user.xa.create')->begin();
         $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id]);
         \YiMQ::commit();
         $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id,'status'=>MessageStatus::DONE]);
@@ -37,11 +37,11 @@ class TransactionMessageTest extends TestCase
     }
 
     public function testMessageCommitLocalSuccessRemoteFailed(){
-        \YiMQ::mock()->transaction('user.create')->reply(200);
+        \YiMQ::mock()->transaction('user.xa.create')->reply(200);
         \YiMQ::mock()->prepare()->reply(200);
         \YiMQ::mock()->commit()->reply(400);
 
-        $message = \YiMQ::transaction('user.create')->begin();
+        $message = \YiMQ::transaction('user.xa.create')->begin();
         $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id]);
         try{
             \YiMQ::commit();
@@ -59,11 +59,11 @@ class TransactionMessageTest extends TestCase
     }
 
     public function testMessagePrepareFailedRollback(){
-        \YiMQ::mock()->transaction('user.create')->reply(200);
+        \YiMQ::mock()->transaction('user.xa.create')->reply(200);
         \YiMQ::mock()->prepare()->reply(400);
         \YiMQ::mock()->rollback()->reply(200);
 
-        $message = \YiMQ::transaction('user.create')->begin();
+        $message = \YiMQ::transaction('user.xa.create')->begin();
         $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id]);
         $ecSubtask1 = \YiMQ::ec('content@content.change')->data(['title'=>'new title1'])->join();
         try{
@@ -84,11 +84,11 @@ class TransactionMessageTest extends TestCase
     }
 
     public function testMessageFailedNotRollback(){
-        \YiMQ::mock()->transaction('user.create')->reply(200);
+        \YiMQ::mock()->transaction('user.xa.create')->reply(200);
         \YiMQ::mock()->prepare()->reply(400);
         \YiMQ::mock()->rollback()->reply(200);
 
-        $message = \YiMQ::transaction('user.create')->begin();
+        $message = \YiMQ::transaction('user.xa.create')->begin();
         $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id]);
         $ecSubtask1 = \YiMQ::ec('content@content.change')->data(['title'=>'new title1'])->join();
         try{
@@ -111,11 +111,11 @@ class TransactionMessageTest extends TestCase
     }
 
     public function testMessageRollback(){
-        \YiMQ::mock()->transaction('user.create')->reply(200);
+        \YiMQ::mock()->transaction('user.xa.create')->reply(200);
         \YiMQ::mock()->prepare()->reply(200);
         \YiMQ::mock()->rollback()->reply(200);
 
-        $message = \YiMQ::transaction('user.create')->begin();
+        $message = \YiMQ::transaction('user.xa.create')->begin();
         $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id]);
         \YiMQ::rollback();
         $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id,'status'=>MessageStatus::CANCELED]);
@@ -132,11 +132,11 @@ class TransactionMessageTest extends TestCase
     }
 
     public function testMessageRollbackLocalSuccessRemoteFailed(){
-        \YiMQ::mock()->transaction('user.create')->reply(200);
+        \YiMQ::mock()->transaction('user.xa.create')->reply(200);
         \YiMQ::mock()->prepare()->reply(200);
         \YiMQ::mock()->rollback()->reply(400);
 
-        $message = \YiMQ::transaction('user.create')->begin();
+        $message = \YiMQ::transaction('user.xa.create')->begin();
         $this->assertDatabaseHas($this->messageTable,['message_id'=>$message->id]);
         try {
             \YiMQ::rollback();
@@ -155,12 +155,12 @@ class TransactionMessageTest extends TestCase
 
     public function testTrasactionTwiceError()
     {
-        $message = \YiMQ::mock()->transaction('user.create')->reply(200);
-        $message = \YiMQ::transaction('user.create')->begin();
+        $message = \YiMQ::mock()->transaction('user.xa.create')->reply(200);
+        $message = \YiMQ::transaction('user.xa.create')->begin();
         \YiMQ::mock()->rollback()->reply(200);
         $errorMessage = null;
         try{
-            $message = \YiMQ::transaction('user.create')->begin();
+            $message = \YiMQ::transaction('user.xa.create')->begin();
         }catch (\Exception $exception){
             $errorMessage = $exception->getMessage();
             \YiMQ::rollback();
@@ -178,13 +178,13 @@ class TransactionMessageTest extends TestCase
 
     public function testAddTccSubtask()
     {
-        \YiMQ::mock()->transaction('user.create')->reply(200);
-        \YiMQ::mock()->tcc('user@user.create')->reply(200,['username'=>'jack']);
+        \YiMQ::mock()->transaction('user.xa.create')->reply(200);
+        \YiMQ::mock()->tcc('user@user.xa.create')->reply(200,['username'=>'jack']);
         \YiMQ::mock()->prepare()->reply(200);
         \YiMQ::mock()->commit()->reply(200);
 
-        $message = \YiMQ::transaction('user.create')->begin();
-        $tccSubtask = \YiMQ::tcc('user@user.create')->data([])->try();
+        $message = \YiMQ::transaction('user.xa.create')->begin();
+        $tccSubtask = \YiMQ::tcc('user@user.xa.create')->data([])->try();
         $this->assertDatabaseHas($this->subtaskTable,['message_id'=>$tccSubtask->id]);
         \YiMQ::commit();
 
@@ -200,13 +200,13 @@ class TransactionMessageTest extends TestCase
 
     public function testAddXaSubtask()
     {
-        \YiMQ::mock()->transaction('user.create')->reply(200);
-        \YiMQ::mock()->xa('user@user.create')->reply(200,['username'=>'jack']);
+        \YiMQ::mock()->transaction('user.xa.create')->reply(200);
+        \YiMQ::mock()->xa('user@user.xa.create')->reply(200,['username'=>'jack']);
         \YiMQ::mock()->prepare()->reply(200);
         \YiMQ::mock()->commit()->reply(200);
 
-        $message = \YiMQ::transaction('user.create')->begin();
-        $tccSubtask = \YiMQ::xa('user@user.create')->data([])->prepare();
+        $message = \YiMQ::transaction('user.xa.create')->begin();
+        $tccSubtask = \YiMQ::xa('user@user.xa.create')->data([])->prepare();
         $this->assertDatabaseHas($this->subtaskTable,['message_id'=>$tccSubtask->id]);
         \YiMQ::commit();
 
@@ -231,7 +231,6 @@ class TransactionMessageTest extends TestCase
         \YiMQ::commit();
         $this->assertDatabaseHas($this->subtaskTable,['subtask_id'=>$ecSubtask1->id]);
         $this->assertDatabaseHas($this->subtaskTable,['subtask_id'=>$ecSubtask2->id]);
-
         $data['action'] = 'MESSAGE_CHECK';
         $data['context'] = [
             'message_id' => $message->id,
@@ -292,11 +291,11 @@ class TransactionMessageTest extends TestCase
 
     public function testClosureTransaction(){
         $username = "name-".$this->getUserId();
-        \YiMQ::mock()->transaction('user.create')->reply(200);
+        \YiMQ::mock()->transaction('user.xa.create')->reply(200);
         \YiMQ::mock()->prepare()->reply(200);
         \YiMQ::mock()->commit()->reply(200);
 
-        $userModel = \YiMQ::transaction('user.create',function () use($username){
+        $userModel = \YiMQ::transaction('user.xa.create',function () use($username){
 
             $ecSubtask1 = \YiMQ::ec('content@user.change')->data(['title'=>'new title1'])->join();
             $userModel = new UserModel();
@@ -310,12 +309,12 @@ class TransactionMessageTest extends TestCase
 
     public function testClosureTransactionRollback(){
         $username = "name-".$this->getUserId();
-        \YiMQ::mock()->transaction('user.create')->reply(200);
+        \YiMQ::mock()->transaction('user.xa.create')->reply(200);
         \YiMQ::mock()->prepare()->reply(200);
         \YiMQ::mock()->commit()->reply(200);
         $exception = null;
         try{
-            $userModel = \YiMQ::transaction('user.create',function () use($username){
+            $userModel = \YiMQ::transaction('user.xa.create',function () use($username){
 
                 $ecSubtask1 = \YiMQ::ec('content@user.change')->data(['title'=>'new title1'])->join();
                 $userModel = new UserModel();

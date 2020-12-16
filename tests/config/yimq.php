@@ -18,11 +18,12 @@ return [
      * 消息参与处理器
      */
     'processors'=>[
-        'user.create' => \Tests\Services\UserCreate::class,
+        'user.xa.create' => \Tests\Services\UserXaCreateProcessor::class,
         'user.create.xa.child-transaction' => \Tests\Services\UserCreateXaChildTransactionProcessor::class,
-        'user.tcc_create' => \Tests\Services\UserTccCreate::class,
-        'user.update' => \Tests\Services\UserUpdate::class,
-        'user.update.ec.manual' => \Tests\Services\UserUpdateEcManual::class,
+        'user.tcc_create' => \Tests\Services\UserTccCreateProcessor::class,
+        'user.tcc_create-child-transaction' => \Tests\Services\UserTccCreateChildTransaction::class,
+        'user.ec.update' => \Tests\Services\UserEcUpdateProcessor::class,
+        'user.update.ec.child-transaction' => \Tests\Services\UserUpdateEcChildTransactionProcessor::class,
         'user.exception' => \Tests\Services\ExceptionProcessor::class,
 
     ],
@@ -30,12 +31,12 @@ return [
      * 消息事件监听器
      */
     'broadcast_topics' => [
-        'user.create' => [
+        'user.xa.create' => [
             'allows'=>[]
         ]
     ],
     'broadcast_listeners'=>[
-        \Tests\Services\UserUpdateListener::class => 'user@user.update',
+        \Tests\Services\UserUpdateListenerProcessor::class => 'user@user.ec.update',
     ]
 
 

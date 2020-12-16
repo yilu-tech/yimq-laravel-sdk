@@ -10,6 +10,7 @@ namespace YiluTech\YiMQ;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
+use YiluTech\YiMQ\Constants\MessageStatus;
 use YiluTech\YiMQ\Constants\TransactionMessageAction;
 use YiluTech\YiMQ\Exceptions\YiMqHttpRequestException;
 use YiluTech\YiMQ\Message\TransactionMessage;
@@ -19,7 +20,7 @@ use YiluTech\YiMQ\Subtask\BcstSubtask;
 use YiluTech\YiMQ\Subtask\EcSubtask;
 use YiluTech\YiMQ\Subtask\TccSubtask;
 use YiluTech\YiMQ\Subtask\XaSubtask;
-
+use YiluTech\YiMQ\Models\Message As MessageModel;
 class YiMqClient
 {
     public $manager;
@@ -46,7 +47,7 @@ class YiMqClient
         ]);
     }
 
-    public function transaction($topic=null,$callback=null):TransactionMessage
+    public function transaction($topic=null,$callback=null)
     {
         if($topic == null){
             return $this->getTransactionMessage();
@@ -54,6 +55,26 @@ class YiMqClient
 
         return new TransactionMessage($this,$topic,$callback);
 
+    }
+
+    public function restoreByParentSubtask($processModel,$messageStatus){
+        if($this->hasTransactionMessage()){
+            throw new \Exception("MicroApi transaction message already exists.");
+        }
+        $parent_subtask_key = $processModel->producer .'@'. $processModel->id;
+        $messageModel = MessageModel::lock('for update nowait')
+            ->where('parent_subtask',$parent_subtask_key)
+            ->where('status',$messageStatus)
+            ->first();
+        if(!$messageModel){
+            return null;
+        }
+
+        $transaction = new TransactionMessage($this,$messageModel->topic,null);
+        $transaction->model = $messageModel;
+        $transaction->id = $messageModel->message_id;
+        $this->setTransactionMessage($transaction);
+        return $transaction;
     }
 
     public function tcc(String $processor): TccSubtask
@@ -125,7 +146,7 @@ class YiMqClient
     public function hasTransactionMessage(){
         return is_null($this->manager->transactionMessage) ? false : true;
     }
-    public function getTransactionMessage():TransactionMessage{
+    public function getTransactionMessage(){
         return $this->manager->transactionMessage;
     }
     public function clearTransactionMessage(){

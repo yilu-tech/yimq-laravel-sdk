@@ -12,7 +12,8 @@ use Illuminate\Support\Facades\Facade;
  * @method static \YiluTech\YiMQ\Subtask\TccSubtask  tcc(string $processor)
  * @method static \YiluTech\YiMQ\Subtask\EcSubtask  ec(string $processor)
  * @method static \YiluTech\YiMQ\Subtask\XaSubtask  xa(string $processor)
- *  @method static \YiluTech\YiMQ\Subtask\BcstSubtask  bcst(string $topic)
+ * @method static \YiluTech\YiMQ\Subtask\BcstSubtask  bcst(string $topic)
+ * @method static \YiluTech\YiMQ\YiMqClient  clearTransactionMessage()
  *
  */
 class YiMqFacade extends Facade
