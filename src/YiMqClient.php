@@ -42,7 +42,7 @@ class YiMqClient
         $this->uri= $config['uri'];
         $this->guzzleClient = new Client([
            'base_uri' => $this->uri,
-            'timeout' => 3
+            'timeout' => 10
         ]);
     }
 
