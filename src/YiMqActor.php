@@ -27,7 +27,7 @@ class YiMqActor
     }
 
     public function try($context){
-        \Log::debug('try',$context);
+//        \Log::debug('try',$context);
         $processor = $this->getProcessor($context);
         if($processor == null){
             $processor = $context['processor'];
@@ -38,7 +38,7 @@ class YiMqActor
     }
 
     public function confirm($context){
-        \Log::debug('confirm',$context);
+//        \Log::debug('confirm',$context);
         $processor = $this->getProcessor($context);
         if($processor == null){
             $processor = $context['processor'];
@@ -59,8 +59,8 @@ class YiMqActor
 //        $messageModel = MessageModel::lockForUpdate()->where('message_id',$context['message_id'])->first();
         $messageModel = MessageModel::lock('for update nowait')->where('message_id',$context['message_id'])->first();
         if(!isset($messageModel)){
-            // return ['status'=> MessageServerStatus::CANCELED];
-           throw new YiMqSystemException('Message not exists.');
+             return ['status'=> MessageServerStatus::CANCELED];
+//           throw new YiMqSystemException('Message not exists.');
         }
         if($messageModel->status == MessageStatus::DONE){
             return ['status'=>'DONE'];
