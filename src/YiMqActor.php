@@ -59,8 +59,8 @@ class YiMqActor
 //        $messageModel = MessageModel::lockForUpdate()->where('message_id',$context['message_id'])->first();
         $messageModel = MessageModel::lock('for update nowait')->where('message_id',$context['message_id'])->first();
         if(!isset($messageModel)){
-            // return ['status'=> MessageServerStatus::CANCELED];
-           throw new YiMqSystemException('Message not exists.');
+             return ['status'=> MessageServerStatus::CANCELED];
+//           throw new YiMqSystemException('Message not exists.');
         }
         if($messageModel->status == MessageStatus::DONE){
             return ['status'=>'DONE'];
