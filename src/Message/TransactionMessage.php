@@ -98,6 +98,7 @@ class TransactionMessage extends Message
         $messageModel->type = MessageType::TRANSACTION;
         $messageModel->topic = $this->topic;
         $messageModel->save();
+        $this->model= $messageModel;
     }
     public function addTccSubtask($subtask){
         array_push($this->tccSubtasks,$subtask);

@@ -192,7 +192,7 @@ class RealEnvChildMessageTest extends TestCase
     /**
      * 因为测试时间太长这个测试的时候需要手动修改名字
      */
-    public function stop_testEcChildRollbackCheckChildTransaction(){
+    public function testEcChildRollbackCheckChildTransaction(){
 //    public function testEcChildRollbackCheckChildTransaction(){
         $id = $this->getProcessId();
         $userModel = $this->createMockUser();
@@ -217,7 +217,7 @@ class RealEnvChildMessageTest extends TestCase
         $userModel->username = 'change-name'.$this->getProcessId();
         $userModel->save();
 
-        sleep(6);
+        sleep(2);
         $this->assertDatabaseHas($this->messageTable,['parent_subtask'=>$parent_subtask,'status'=>MessageStatus::CANCELED]);
         //重试后存在一条 已完成的子事务
         $this->assertDatabaseHas($this->messageTable,['parent_subtask'=>$parent_subtask,'status'=>MessageStatus::DONE]);
